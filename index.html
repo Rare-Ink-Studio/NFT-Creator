@@ -1,0 +1,3362 @@
+<!doctype html>
+
+  <html>
+    <head>
+      <title>Rare Ink Studios NFT Creator — Multi-Artist</title>
+      <meta name="viewport" content="width=device-width, initial-scale=1" />
+      <meta name="description" content="Create layered, multi-artist NFT collections with rarity controls, metadata, project saving, and ZIP export." />
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+      <style>
+        * { box-sizing: border-box; }
+        button, input, select, textarea { max-width: 100%; }
+        @media (max-width: 760px) {
+          body { padding: 18px !important; }
+          [style*="grid-template-columns:repeat(3"], [style*="grid-template-columns: 1fr 1fr"], [style*="grid-template-columns:1fr 1fr"] { grid-template-columns: 1fr !important; }
+          [style*="min-width:260px"], [style*="min-width: 260px"], [style*="min-width:220px"], [style*="min-width: 220px"] { min-width: 0 !important; width: 100% !important; }
+        }
+      </style>
+    </head>
+
+    <body style="font-family:Arial; background:#111827; color:white; margin:0; padding:40px;">
+
+      <div style="max-width:1000px; margin:auto;">
+
+        <h1 style="font-size:48px; margin-bottom:10px;">Rare Ink Studios NFT Creator</h1>
+
+        <p style="font-size:20px; color:#d1d5db; margin-bottom:40px;">
+          Simple NFT collection generation for creators.
+        </p>
+        <div style="background:#052e16; border:1px solid #22c55e; color:#dcfce7; padding:12px 16px; border-radius:12px; margin-bottom:22px;">
+          Privacy: artwork and project data stay in your browser. Nothing is uploaded to Rare Ink Studios or GitHub.
+        </div>
+
+        <div style="display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:10px; margin-bottom:22px;">
+          <button class="creatorTypeButton" id="creatorTypeImage" onclick="selectCreatorType('image')" style="background:#2563eb;color:white;border:none;padding:16px 8px;border-radius:12px;cursor:pointer;">🖼️ Image</button>
+          <button class="creatorTypeButton" id="creatorTypeAudio" onclick="selectCreatorType('audio')" style="background:#374151;color:white;border:none;padding:16px 8px;border-radius:12px;cursor:pointer;">🎵 Audio</button>
+          <button class="creatorTypeButton" id="creatorTypeVideo" onclick="selectCreatorType('video')" style="background:#374151;color:white;border:none;padding:16px 8px;border-radius:12px;cursor:pointer;">🎬 Video</button>
+          <button class="creatorTypeButton" id="creatorTypeAudiovisual" onclick="selectCreatorType('audiovisual')" style="background:#374151;color:white;border:none;padding:16px 8px;border-radius:12px;cursor:pointer;">🎞️ Audiovisual</button>
+          <button class="creatorTypeButton" id="creatorTypeExport" onclick="selectCreatorType('export')" style="background:#374151;color:white;border:none;padding:16px 8px;border-radius:12px;cursor:pointer;">📦 Export Center</button>
+        </div>
+
+        <div id="imageCreatorPanel" class="creatorPanel" style="background:#1f2937; padding:35px; border-radius:22px;">
+
+          <h2>Choose Creator Mode</h2>
+
+          <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:18px; margin-top:20px; margin-bottom:35px;">
+
+            <button id="simpleBtn" onclick="selectMode('simple')" style="background:#2563eb; color:white; border:none; padding:22px; border-radius:16px; font-size:18px; cursor:pointer;">
+              Simple Edition<br>
+              <span style="font-size:13px; color:#dbeafe;">1 image copied into many NFTs</span>
+            </button>
+
+            <button type="button" id="multiBtn" onclick="selectMode('multi')" style="background:#374151; color:white; border:none; padding:22px; border-radius:16px; font-size:18px; cursor:pointer;">
+              Multi-Image Collection<br>
+              <span style="font-size:13px; color:#d1d5db;">Many finished images with metadata</span>
+            </button>
+
+            <button type="button" id="advancedBtn" onclick="selectMode('advanced')" style="background:#374151; color:white; border:none; padding:22px; border-radius:16px; font-size:18px; cursor:pointer;">
+              Advanced Randomizer<br>
+              <span style="font-size:13px; color:#d1d5db;">Layers, traits, rarity, randomized NFTs</span>
+            </button>
+
+          </div>
+
+          <div id="selectedMode" style="background:#111827; padding:18px; border-radius:14px; margin-bottom:30px; color:#d1d5db;">
+            Selected Mode: Simple Edition
+          </div>
+
+          <h2>Create Collection</h2>
+
+          <input id="collectionName" placeholder="Collection Name" style="width:auto; min-width:220px; padding:16px; margin-top:15px; border-radius:12px; border:none; font-size:18px;" />
+
+          <input id="nftBaseName" placeholder="NFT Base Name" style="width:auto; min-width:220px; padding:16px; margin-top:15px; border-radius:12px; border:none; font-size:18px;" />
+
+          <input id="supplyAmount" placeholder="Supply Amount" max="10000" style="width:auto; min-width:220px; padding:16px; margin-top:15px; border-radius:12px; border:none; font-size:18px;" />
+          <div id="nightShotsProjectControls" style="display:flex; gap:12px; flex-wrap:wrap; margin-top:18px;">
+
+            <button type="button" onclick="saveNightShotsProject()" style="background:#2563eb; color:white; border:none; padding:12px 18px; border-radius:12px; font-size:16px; cursor:pointer;">
+              Save Project JSON
+            </button>
+
+            <button type="button" onclick="document.getElementById('loadProjectInput').click()" style="background:#16a34a; color:white; border:none; padding:12px 18px; border-radius:12px; font-size:16px; cursor:pointer;">
+              Load Project JSON
+            </button>
+
+            <button type="button" onclick="restoreNightShotsAutosave()" style="background:#f59e0b; color:#111827; border:none; padding:12px 18px; border-radius:12px; font-size:16px; font-weight:bold; cursor:pointer;">
+              Restore Auto Save
+            </button>
+
+          </div>
+
+          <input id="loadProjectInput" type="file" accept=".json" style="display:none;" onchange="loadNightShotsProject(event)" />
+
+
+
+          <div id="simpleSection">
+            <h2 style="margin-top:35px; font-size:34px;">Upload Single Artwork</h2>
+
+            <div style="margin-top:20px; background:#111827; border:2px dashed #374151; border-radius:18px; padding:40px; text-align:center;">
+              <div style="font-size:22px; margin-bottom:15px;">Upload 1 image to duplicate into many NFTs</div>
+              <div style="color:#9ca3af; margin-bottom:25px;">Best for edition collections</div>
+
+              <input id="simpleArtworkInput" name="simpleArtwork" type="file" accept="image/*" style="display:none;" onchange="showSimpleArtworkName()" />
+
+              <button onclick="document.getElementById('simpleArtworkInput').click()" style="background:#2563eb; color:white; border:none; padding:14px 28px; border-radius:12px; font-size:18px; cursor:pointer;">
+                Select Artwork
+              </button>
+
+              <div id="simpleArtworkName" style="margin-top:20px; color:#d1d5db;"></div>
+            </div>
+          </div>
+
+          <div id="multiSection" style="display:none;">
+            <h2 style="margin-top:35px; font-size:34px;">Upload Multiple Finished Images</h2>
+
+            <div style="margin-top:20px; background:#111827; border:2px dashed #374151; border-radius:18px; padding:40px; text-align:center;">
+              <div style="font-size:22px; margin-bottom:15px;">Upload multiple completed NFT images</div>
+              <div style="color:#9ca3af; margin-bottom:25px;">Each image can have its own metadata and traits</div>
+
+              <input id="multiArtworkInput" name="multiArtwork" type="file" accept="image/*" multiple style="display:none;" onchange="showMultiArtworkName()" />
+
+              <button onclick="document.getElementById('multiArtworkInput').click()" style="background:#2563eb; color:white; border:none; padding:14px 28px; border-radius:12px; font-size:18px; cursor:pointer;">
+                Select Multiple Images
+              </button>
+
+              <div id="multiArtworkName" style="margin-top:20px; color:#d1d5db;"></div>
+            </div>
+
+            <div id="multiImageManager" style="display:none; margin-top:30px; background:#111827; padding:25px; border-radius:18px;">
+              <h2 style="margin-top:0;">Multi-Image Metadata Manager</h2>
+              <p style="color:#9ca3af;">
+                Each uploaded image becomes one NFT. Add a name, description, and separate traits for each image.
+              </p>
+
+              <div id="multiImageList"></div>
+            </div>
+          </div>
+
+          <div id="advancedSection" style="display:none;">
+            <h2 style="margin-top:35px; font-size:34px;">Advanced Randomized Collection</h2>
+
+            <div style="margin-top:20px; background:#111827; border:2px dashed #374151; border-radius:18px; padding:40px;">
+              <div style="font-size:22px; margin-bottom:15px;">Layer + trait generator</div>
+              <div style="color:#9ca3af; margin-bottom:25px;">
+                Future support: Backgrounds, bodies, eyes, clothing, accessories, rarity percentages, and random generation.
+              </div>
+
+              <div style="background:#1f2937; padding:18px; border-radius:14px; color:#d1d5db;">
+                Build randomized NFT collections by adding layers, traits, and rarity percentages.
+              </div>
+
+              <div id="artistManager" style="margin-top:25px; background:#0f172a; border:2px solid #ec4899; padding:22px; border-radius:16px;">
+                <h3 style="margin-top:0; color:#f9a8d4;">Artist Manager</h3>
+                <p style="color:#d1d5db;">Add every contributing artist, assign each uploaded trait, and choose how their work is combined.</p>
+                <div style="display:grid; grid-template-columns:repeat(3,minmax(150px,1fr)); gap:10px;">
+                  <input id="artistNameInput" placeholder="Artist name (required)" style="padding:11px; border-radius:10px; border:none;" />
+                  <input id="artistHandleInput" placeholder="Handle, example: @artist" style="padding:11px; border-radius:10px; border:none;" />
+                  <input id="artistWebsiteInput" placeholder="Website (optional)" style="padding:11px; border-radius:10px; border:none;" />
+                  <input id="artistWalletInput" placeholder="Wallet (optional)" style="padding:11px; border-radius:10px; border:none;" />
+                  <input id="artistCreditInput" placeholder="Credit statement (optional)" style="padding:11px; border-radius:10px; border:none;" />
+                  <button type="button" onclick="addOrUpdateArtist()" style="background:#ec4899; color:white; border:none; padding:11px; border-radius:10px; cursor:pointer;">Add Artist</button>
+                </div>
+                <div id="artistList" style="margin-top:14px;"></div>
+                <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:16px; align-items:center;">
+                  <label>Combination Mode:</label>
+                  <select id="artistCombinationMode" onchange="artistCombinationMode=this.value; autoSaveNightShotsProject()" style="padding:10px; border-radius:10px;">
+                    <option value="none">No Artist Requirement</option>
+                    <option value="selected">Include Selected Artists</option>
+                    <option value="require-all">Require Every Selected Artist</option>
+                    <option value="single">Single Artist Per NFT</option>
+                  </select>
+                  <label>Trait Filter:</label>
+                  <select id="artistTraitFilter" onchange="renderRandomTraits()" style="padding:10px; border-radius:10px;"><option value="all">All Artists</option></select>
+                </div>
+                <div id="artistSelectionList" style="margin-top:12px; color:#d1d5db;"></div>
+              </div>
+
+              <div style="margin-top:25px; background:#1f2937; padding:22px; border-radius:16px;">
+
+                <div style="display:flex; justify-content:space-between; align-items:center; gap:12px;">
+                  <h3 style="margin-top:0;">Add Randomizer Trait</h3>
+
+                  <button type="button" onclick="toggleTraitBuilderVisibility()" id="toggleTraitBuilderButton" style="background:#374151; color:white; border:none; padding:10px 14px; border-radius:10px; cursor:pointer;">
+                    Hide Traits
+                  </button>
+                </div>
+
+                <div id="traitBuilderContent">
+
+                <div style="display:grid; grid-template-columns:1fr 1fr 150px 120px auto; gap:10px;">
+
+                  <select id="randomTraitArtist" style="padding:12px; border-radius:10px; border:none; font-size:16px;"><option value="unassigned">Unassigned Artist</option></select>
+
+                  <input id="randomLayerName" placeholder="Layer Name, example: Background" style="padding:12px; border-radius:10px; border:none; font-size:16px;" />
+
+                  <input id="randomTraitName" placeholder="Trait Name, example: Gold" style="padding:12px; border-radius:10px; border:none; font-size:16px;" />
+
+                  <input id="randomTraitRarity" placeholder="Rarity %" style="padding:12px; border-radius:10px; border:none; font-size:16px;" />
+
+                  <button onclick="document.getElementById('randomTraitImage').click()" style="background:#374151; color:white; border:none; padding:12px 18px; border-radius:10px; cursor:pointer;">
+                    Choose Image
+                  </button>
+
+                </div>
+
+                <input id="randomTraitImage" type="file" accept="image/*" style="display:none;" onchange="showRandomTraitImageName()" />
+
+                <div id="randomTraitImageName" style="margin-top:12px; color:#9ca3af;">
+                  No trait image selected.
+                </div>
+
+                <button onclick="addRandomTrait()" style="margin-top:15px; background:#2563eb; color:white; border:none; padding:12px 22px; border-radius:10px; cursor:pointer;">
+                  Add Trait With Image
+                </button>
+
+                <div id="randomTraitList" style="margin-top:20px;"></div>
+
+                </div>
+
+                <div id="savedTraitSetManager" style="margin-top:25px; background:#0f172a; border:2px solid #374151; border-radius:16px; padding:18px;">
+                  <h3 style="margin-top:0; color:white;">Saved Trait Sets</h3>
+
+                  <div style="color:#9ca3af; margin-bottom:12px;">
+                    Save many trait sets, then add or replace traits from checked items.
+                  </div>
+
+                  <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:12px;">
+                    <button type="button" onclick="saveCurrentTraitSetClean()" style="background:#2563eb; color:white; border:none; padding:10px 14px; border-radius:10px; cursor:pointer;">
+                      Save Current Traits
+                    </button>
+
+                    <select id="savedTraitSetSelect" onchange="drawSavedTraitPickerFinal()" style="padding:10px; border-radius:10px; border:none; min-width:240px;">
+                      <option value="">No saved trait sets</option>
+                    </select>
+
+                    <button type="button" onclick="deleteSavedTraitSetClean()" style="background:#dc2626; color:white; border:none; padding:10px 14px; border-radius:10px; cursor:pointer;">
+                      Delete Saved Set
+                    </button>
+                  </div>
+
+                  <button type="button" onclick="toggleSavedTraitPickerBox()" style="background:#374151; color:white; border:none; padding:9px 12px; border-radius:10px; cursor:pointer; margin-bottom:10px;">
+                    Show / Hide Trait Picker
+                  </button>
+
+                  <div id="savedTraitPickerBox" style="background:#111827; border-radius:12px; padding:14px; min-height:50px; max-height:260px; overflow-y:auto; color:#d1d5db;">
+                    Choose a saved trait set.
+                  </div>
+
+                  <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:12px;">
+                    <button type="button" onclick="addCheckedTraitsOnly()" style="background:#16a34a; color:white; border:none; padding:10px 14px; border-radius:10px; cursor:pointer;">
+                      Add Checked Traits
+                    </button>
+
+                    <button type="button" onclick="replaceWithCheckedTraitsOnly()" style="background:#f59e0b; color:#111827; border:none; padding:10px 14px; border-radius:10px; cursor:pointer; font-weight:bold;">
+                      Replace With Checked Traits
+                    </button>
+                  </div>
+                </div>
+
+                <div id="traitRuleEngineBox" style="margin-top:25px; background:#0f172a; border:2px solid #7c3aed; border-radius:16px; padding:18px;">
+                  <div style="display:flex; justify-content:space-between; align-items:center; gap:12px;">
+                    <h3 style="margin-top:0; color:white;">Trait Rule Engine</h3>
+
+                    <button type="button" onclick="toggleTraitRulesVisibility()" id="toggleTraitRulesButton" style="background:#374151; color:white; border:none; padding:10px 14px; border-radius:10px; cursor:pointer;">
+                      Hide Rules
+                    </button>
+                  </div>
+
+                  <div id="traitRulesContent">
+
+                  <div style="color:#c4b5fd; margin-bottom:12px;">
+                    Add rules to prevent bad combinations before NFTs are generated.
+                  </div>
+
+                  <div style="display:grid; grid-template-columns:1fr 170px 1fr auto; gap:10px; align-items:center;">
+                    <select id="ruleTraitA" style="padding:10px; border-radius:10px; border:none;">
+                      <option value="">Choose first trait</option>
+                    </select>
+
+                    <select id="ruleType" style="padding:10px; border-radius:10px; border:none;">
+                      <option value="cannot_pair">Cannot pair with</option>
+                      <option value="requires">Requires</option>
+                    </select>
+
+                    <select id="ruleTraitB" style="padding:10px; border-radius:10px; border:none;">
+                      <option value="">Choose second trait</option>
+                    </select>
+
+                    <button type="button" onclick="addTraitRule()" style="background:#7c3aed; color:white; border:none; padding:10px 14px; border-radius:10px; cursor:pointer;">
+                      Add Rule
+                    </button>
+
+                    <button type="button" onclick="removeAllTraitRules()" style="background:#dc2626; color:white; border:none; padding:10px 14px; border-radius:10px; cursor:pointer;">
+                      Remove All Rules
+                    </button>
+                  </div>
+
+                  <div id="traitRuleList" style="margin-top:14px; color:#d1d5db;">
+                    No rules added yet.
+                  </div>
+
+                  </div>
+                </div>
+
+                <div id="advancedOneOfOneBox" style="margin-top:22px; background:#7c2d12; border:3px solid #f59e0b; border-radius:14px; padding:16px;">
+                  <label style="display:block; color:white; font-weight:bold; margin-bottom:8px; font-size:18px;">
+                    TRUE 1/1 COUNT FOR THIS GENERATION
+                  </label>
+                  <input id="advancedOneOfOneCount" type="number" min="0" max="589" value="0" placeholder="Example: 8" style="width:auto; min-width:260px; padding:14px; border-radius:10px; border:none; font-size:18px; font-weight:bold;" />
+                  <div style="color:#fde68a; margin-top:8px;">
+                    Maximum is 589 true 1/1s. Enter up to 589 to create gold TRUE 1/1 cards.
+                  </div>
+                </div>
+
+                <button onclick="startRandomNFTGeneration(this)" style="
+                  margin-top:25px;
+                  background:#16a34a;
+                  color:white;
+                  border:none;
+                  padding:14px 24px;
+                  border-radius:12px;
+                  font-size:18px;
+                  cursor:pointer;
+                ">
+                  Generate NFTs
+                </button>
+
+                <button type="button" onclick="removeGeneratedNFTs()" style="
+                  margin-top:25px;
+                  margin-left:10px;
+                  background:#dc2626;
+                  color:white;
+                  border:none;
+                  padding:14px 24px;
+                  border-radius:12px;
+                  font-size:18px;
+                  cursor:pointer;
+                ">
+                  Clear Results
+                </button>
+
+
+                <div id="generationStatus" style="display:none; margin-top:22px; background:#0f172a; border:2px solid #2563eb; border-radius:14px; padding:16px; color:#dbeafe; font-weight:bold;">
+                  Ready to generate.
+                </div>
+
+                <div id="generatedRandomNFTs" style="margin-top:30px;"></div>
+
+
+              </div>
+            </div>
+          </div>
+
+          <div style="margin-top:35px; background:#2563eb; padding:30px; border-radius:18px;">
+
+            <h2 style="text-align:center; font-size:32px;">Shared Collection Traits</h2>
+
+            <div style="display:flex; gap:12px; margin-top:20px;">
+
+              <input id="traitType" placeholder="Shared Trait Type" style="flex:1; padding:14px; border-radius:10px; border:none; font-size:18px;" />
+
+              <input id="traitValue" placeholder="Shared Trait Value" style="flex:1; padding:14px; border-radius:10px; border:none; font-size:18px;" />
+
+              <button onclick="addTrait()" style="background:#374151; color:white; border:none; padding:14px 24px; border-radius:10px; font-size:16px; cursor:pointer;">
+                Add Shared Trait
+              </button>
+
+            </div>
+
+          </div>
+
+          <div style="margin-top:30px; background:#111827; padding:25px; border-radius:18px;">
+
+            <h3 style="margin-top:0; color:#9ca3af; font-size:24px;">Current Shared Traits</h3>
+
+            <div id="traitList"></div>
+
+          </div>
+
+          <button id="mainGenerateZipButton" onclick="generateCollection()" style="margin-top:30px; background:#2563eb; color:white; border:none; padding:16px 30px; border-radius:12px; font-size:18px; cursor:pointer;">
+            Generate NFT Collection ZIP
+          </button>
+
+        </div>
+
+        <div id="audioCreatorPanel" class="creatorPanel" style="display:none;background:#1f2937;padding:35px;border-radius:22px;">
+          <h2>🎵 Audio NFT Creator</h2>
+          <p style="color:#d1d5db;">Create editions from music, spoken word, podcasts, sound effects, or other audio.</p>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+            <input id="audioCollection" placeholder="Collection Name" style="padding:14px;border-radius:10px;border:none;">
+            <input id="audioName" placeholder="NFT Base Name" style="padding:14px;border-radius:10px;border:none;">
+            <input id="audioSupply" type="number" min="1" max="10000" value="1" placeholder="Supply" style="padding:14px;border-radius:10px;border:none;">
+            <textarea id="audioDescription" placeholder="Description" style="padding:14px;border-radius:10px;border:none;"></textarea>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px;">
+            <label style="background:#111827;padding:16px;border-radius:12px;">Audio file<br><input id="audioMedia" type="file" accept="audio/*" style="margin-top:10px;"></label>
+            <label style="background:#111827;padding:16px;border-radius:12px;">Cover artwork (optional)<br><input id="audioCover" type="file" accept="image/*" style="margin-top:10px;"></label>
+          </div>
+          <div id="audioTraitsBox" style="margin-top:18px;"></div>
+          <button onclick="addMediaTrait('audio')" style="margin-top:14px;background:#7c3aed;color:white;border:none;padding:11px 16px;border-radius:10px;">Add Metadata Trait</button>
+          <button onclick="exportMediaCreator('audio')" style="margin-top:14px;background:#16a34a;color:white;border:none;padding:14px 20px;border-radius:10px;">Generate Audio NFT ZIP</button>
+        </div>
+
+        <div id="videoCreatorPanel" class="creatorPanel" style="display:none;background:#1f2937;padding:35px;border-radius:22px;">
+          <h2>🎬 Video NFT Creator</h2>
+          <p style="color:#d1d5db;">Create editions from animation, film, clips, or other video artwork.</p>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+            <input id="videoCollection" placeholder="Collection Name" style="padding:14px;border-radius:10px;border:none;">
+            <input id="videoName" placeholder="NFT Base Name" style="padding:14px;border-radius:10px;border:none;">
+            <input id="videoSupply" type="number" min="1" max="10000" value="1" placeholder="Supply" style="padding:14px;border-radius:10px;border:none;">
+            <textarea id="videoDescription" placeholder="Description" style="padding:14px;border-radius:10px;border:none;"></textarea>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px;">
+            <label style="background:#111827;padding:16px;border-radius:12px;">Video file<br><input id="videoMedia" type="file" accept="video/*" style="margin-top:10px;"></label>
+            <label style="background:#111827;padding:16px;border-radius:12px;">Poster image (optional)<br><input id="videoCover" type="file" accept="image/*" style="margin-top:10px;"></label>
+          </div>
+          <div id="videoTraitsBox" style="margin-top:18px;"></div>
+          <button onclick="addMediaTrait('video')" style="margin-top:14px;background:#7c3aed;color:white;border:none;padding:11px 16px;border-radius:10px;">Add Metadata Trait</button>
+          <button onclick="exportMediaCreator('video')" style="margin-top:14px;background:#16a34a;color:white;border:none;padding:14px 20px;border-radius:10px;">Generate Video NFT ZIP</button>
+        </div>
+
+        <div id="audiovisualCreatorPanel" class="creatorPanel" style="display:none;background:#1f2937;padding:35px;border-radius:22px;">
+          <h2>🎞️ Audiovisual NFT Creator</h2>
+          <p style="color:#d1d5db;">Pair visual artwork with a separate audio track while preserving both original files.</p>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+            <input id="audiovisualCollection" placeholder="Collection Name" style="padding:14px;border-radius:10px;border:none;">
+            <input id="audiovisualName" placeholder="NFT Base Name" style="padding:14px;border-radius:10px;border:none;">
+            <input id="audiovisualSupply" type="number" min="1" max="10000" value="1" placeholder="Supply" style="padding:14px;border-radius:10px;border:none;">
+            <textarea id="audiovisualDescription" placeholder="Description" style="padding:14px;border-radius:10px;border:none;"></textarea>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px;">
+            <label style="background:#111827;padding:16px;border-radius:12px;">Visual image or video<br><input id="audiovisualMedia" type="file" accept="image/*,video/*" style="margin-top:10px;"></label>
+            <label style="background:#111827;padding:16px;border-radius:12px;">Audio track<br><input id="audiovisualAudio" type="file" accept="audio/*" style="margin-top:10px;"></label>
+          </div>
+          <div id="audiovisualTraitsBox" style="margin-top:18px;"></div>
+          <button onclick="addMediaTrait('audiovisual')" style="margin-top:14px;background:#7c3aed;color:white;border:none;padding:11px 16px;border-radius:10px;">Add Metadata Trait</button>
+          <button onclick="exportMediaCreator('audiovisual')" style="margin-top:14px;background:#16a34a;color:white;border:none;padding:14px 20px;border-radius:10px;">Generate Audiovisual NFT ZIP</button>
+        </div>
+
+        <div id="exportCreatorPanel" class="creatorPanel" style="display:none;background:#1f2937;padding:35px;border-radius:22px;">
+          <h2>📦 Marketplace Export Center</h2>
+          <p style="color:#d1d5db;">These settings are included in creator exports. Minting remains in One Home.</p>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+            <select id="exportPreset" style="padding:14px;border-radius:10px;border:none;"><option value="generic">Generic / IPFS</option><option value="xrpl">XRPL</option><option value="opensea">OpenSea / Ethereum / Polygon / Base</option><option value="solana">Solana</option><option value="cardano">Cardano</option></select>
+            <input id="exportCreatorName" placeholder="Creator / Brand" value="Rare Ink Studios" style="padding:14px;border-radius:10px;border:none;">
+            <input id="exportCollectionName" placeholder="Collection Name" style="padding:14px;border-radius:10px;border:none;">
+            <input id="exportExternalUrl" placeholder="External URL" style="padding:14px;border-radius:10px;border:none;">
+            <input id="exportRoyalty" type="number" min="0" max="100" step="0.1" placeholder="Royalty %" style="padding:14px;border-radius:10px;border:none;">
+            <input id="exportLicense" placeholder="License / Usage Rights" style="padding:14px;border-radius:10px;border:none;">
+          </div>
+          <button onclick="saveExportSettings()" style="margin-top:16px;background:#2563eb;color:white;border:none;padding:14px 20px;border-radius:10px;">Save Export Settings</button>
+          <div id="exportSettingsStatus" style="margin-top:14px;color:#86efac;"></div>
+        </div>
+
+      </div>
+
+      <script>
+        let currentMode = 'simple'
+        let sharedTraits = []
+        let perImageTraits = {}
+        let mediaTraits = { audio:[], video:[], audiovisual:[] }
+        let exportSettings = JSON.parse(localStorage.getItem('rareInkExportSettings') || '{}')
+
+        function selectCreatorType(type) {
+          document.querySelectorAll('.creatorPanel').forEach(function(panel) { panel.style.display = 'none' })
+          document.querySelectorAll('.creatorTypeButton').forEach(function(button) { button.style.background = '#374151' })
+          document.getElementById(type + 'CreatorPanel').style.display = 'block'
+          document.getElementById('creatorType' + type.charAt(0).toUpperCase() + type.slice(1)).style.background = '#2563eb'
+        }
+
+        function renderMediaTraits(type) {
+          const box = document.getElementById(type + 'TraitsBox'); if (!box) return
+          box.innerHTML = '<div style="display:flex;gap:10px"><input id="' + type + 'TraitType" placeholder="Trait Type" style="flex:1;padding:11px;border-radius:9px;border:none"><input id="' + type + 'TraitValue" placeholder="Trait Value" style="flex:1;padding:11px;border-radius:9px;border:none"></div>' +
+            mediaTraits[type].map(function(t,index) { return '<div style="display:flex;justify-content:space-between;background:#111827;padding:10px;margin-top:8px;border-radius:9px"><span>' + t.trait_type + ' → ' + t.value + '</span><button type="button" data-type="' + type + '" data-index="' + index + '" onclick="removeMediaTrait(this.dataset.type,Number(this.dataset.index))">Remove</button></div>' }).join('')
+        }
+
+        function addMediaTrait(type) {
+          const traitType = document.getElementById(type + 'TraitType').value.trim()
+          const value = document.getElementById(type + 'TraitValue').value.trim()
+          if (!traitType || !value) { alert('Enter both the trait type and trait value.'); return }
+          mediaTraits[type].push({ trait_type:traitType, value:value }); renderMediaTraits(type)
+        }
+
+        function removeMediaTrait(type,index) { mediaTraits[type].splice(index,1); renderMediaTraits(type) }
+
+        function saveExportSettings() {
+          exportSettings = {
+            preset:document.getElementById('exportPreset').value,
+            creator:document.getElementById('exportCreatorName').value.trim(),
+            collection:document.getElementById('exportCollectionName').value.trim(),
+            external_url:document.getElementById('exportExternalUrl').value.trim(),
+            royalty_percentage:document.getElementById('exportRoyalty').value,
+            license:document.getElementById('exportLicense').value.trim()
+          }
+          localStorage.setItem('rareInkExportSettings', JSON.stringify(exportSettings))
+          document.getElementById('exportSettingsStatus').textContent = 'Export settings saved in this browser.'
+        }
+
+        function applyExportSettings(metadata) {
+          const settings = exportSettings || {}
+          const result = Object.assign({}, metadata)
+          result.creator = settings.creator || 'Rare Ink Studios'
+          result.collection = settings.collection || result.collection || ''
+          result.external_url = settings.external_url || ''
+          result.license = settings.license || ''
+          result.royalty_percentage = settings.royalty_percentage === '' || settings.royalty_percentage === undefined ? null : Number(settings.royalty_percentage)
+          result.export_format = settings.preset || 'generic'
+          if (settings.preset === 'xrpl') result.schema = 'XRPL NFT metadata'
+          if (settings.preset === 'opensea') result.schema = 'OpenSea compatible metadata'
+          if (settings.preset === 'solana') result.properties = Object.assign({}, result.properties, { category:'media', creators:[{ address:'', share:100 }] })
+          if (settings.preset === 'cardano') result.schema = 'Cardano NFT metadata'
+          return result
+        }
+
+        function mediaExtension(file) {
+          const match = String(file?.name || '').match(/\.[a-z0-9]+$/i)
+          return match ? match[0].toLowerCase() : ''
+        }
+
+        async function exportMediaCreator(type) {
+          const collection = document.getElementById(type + 'Collection').value.trim() || 'NFT Collection'
+          const baseName = document.getElementById(type + 'Name').value.trim() || 'NFT'
+          const description = document.getElementById(type + 'Description').value.trim()
+          const supply = Math.max(1, Math.min(10000, parseInt(document.getElementById(type + 'Supply').value || '1',10)))
+          const primary = document.getElementById(type + 'Media').files[0]
+          if (!primary) { alert('Choose the primary ' + (type === 'audiovisual' ? 'visual' : type) + ' file first.'); return }
+          const audio = type === 'audiovisual' ? document.getElementById('audiovisualAudio').files[0] : null
+          if (type === 'audiovisual' && !audio) { alert('Choose the audio track first.'); return }
+          const cover = type === 'audio' || type === 'video' ? document.getElementById(type + 'Cover').files[0] : null
+          const zip = new JSZip(), media = zip.folder('media'), metadataFolder = zip.folder('metadata')
+          const primaryName = 'primary' + mediaExtension(primary); media.file(primaryName, primary)
+          let audioName = ''; if (audio) { audioName = 'audio' + mediaExtension(audio); media.file(audioName,audio) }
+          let coverName = ''; if (cover) { coverName = 'cover' + mediaExtension(cover); media.file(coverName,cover) }
+          for (let i=1;i<=supply;i++) {
+            let data = { name:baseName + ' #' + i, description:description, collection:collection, attributes:(mediaTraits[type] || []).concat([{ trait_type:'Edition', value:i + ' of ' + supply }]) }
+            if (type === 'audio') { data.animation_url='media/'+primaryName; data.media_type=primary.type; if(coverName)data.image='media/'+coverName }
+            if (type === 'video') { data.animation_url='media/'+primaryName; data.media_type=primary.type; if(coverName)data.image='media/'+coverName }
+            if (type === 'audiovisual') { data.image_or_video='media/'+primaryName; data.animation_url='media/'+primaryName; data.audio_url='media/'+audioName; data.media_type=primary.type; data.audio_type=audio.type }
+            metadataFolder.file(i + '.json', JSON.stringify(applyExportSettings(data),null,2))
+          }
+          zip.file('manifest.json', JSON.stringify({ created_by:'Rare Ink Studios NFT Creator', creator_type:type, collection_name:collection, supply:supply, exported_at:new Date().toISOString(), minting:'Handled separately through One Home' },null,2))
+          const blob=await zip.generateAsync({type:'blob'}), url=URL.createObjectURL(blob), a=document.createElement('a')
+          a.href=url; a.download=collection.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')+'-'+type+'-nfts.zip'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url)
+        }
+
+        ;['audio','video','audiovisual'].forEach(renderMediaTraits)
+        setTimeout(function() {
+          const map={ exportPreset:'preset', exportCreatorName:'creator', exportCollectionName:'collection', exportExternalUrl:'external_url', exportRoyalty:'royalty_percentage', exportLicense:'license' }
+          Object.keys(map).forEach(function(id) { if (exportSettings[map[id]] !== undefined) document.getElementById(id).value=exportSettings[map[id]] })
+        },0)
+
+        function selectMode(mode) {
+          currentMode = mode
+
+          document.getElementById('simpleSection').style.display = 'none'
+          document.getElementById('multiSection').style.display = 'none'
+          document.getElementById('advancedSection').style.display = 'none'
+
+          document.getElementById('simpleBtn').style.background = '#374151'
+          document.getElementById('multiBtn').style.background = '#374151'
+          document.getElementById('advancedBtn').style.background = '#374151'
+
+          let label = 'Simple Edition'
+
+          if (mode === 'simple') {
+            document.getElementById('simpleSection').style.display = 'block'
+            document.getElementById('simpleBtn').style.background = '#2563eb'
+            label = 'Simple Edition'
+          }
+
+          if (mode === 'multi') {
+            document.getElementById('multiSection').style.display = 'block'
+            document.getElementById('multiBtn').style.background = '#2563eb'
+            label = 'Multi-Image Collection'
+          }
+
+          if (mode === 'advanced') {
+            document.getElementById('advancedSection').style.display = 'block'
+            document.getElementById('advancedBtn').style.background = '#2563eb'
+            label = 'Advanced Randomized Collection'
+          }
+
+          document.getElementById('selectedMode').innerHTML = 'Selected Mode: ' + label
+
+          const mainZipButton = document.getElementById('mainGenerateZipButton')
+
+          if (mainZipButton) {
+            if (mode === 'advanced') {
+              mainZipButton.style.display = 'none'
+            } else {
+              mainZipButton.style.display = 'inline-block'
+            }
+          }
+        }
+
+        function showSimpleArtworkName() {
+          const fileInput = document.getElementById('simpleArtworkInput')
+          const artworkName = document.getElementById('simpleArtworkName')
+
+          if (fileInput.files.length > 0) {
+            artworkName.innerHTML = 'Selected artwork: ' + fileInput.files[0].name
+          }
+        }
+
+        function showMultiArtworkName() {
+          const fileInput = document.getElementById('multiArtworkInput')
+          const artworkName = document.getElementById('multiArtworkName')
+          const manager = document.getElementById('multiImageManager')
+          const list = document.getElementById('multiImageList')
+
+          list.innerHTML = ''
+          perImageTraits = {}
+
+          if (fileInput.files.length > 0) {
+            artworkName.innerHTML = 'Selected images: ' + fileInput.files.length
+            manager.style.display = 'block'
+
+            Array.from(fileInput.files).forEach((file, index) => {
+              const number = index + 1
+              perImageTraits[number] = []
+
+              const imageURL = URL.createObjectURL(file)
+
+              const item = document.createElement('div')
+
+              item.style.display = 'grid'
+              item.style.gridTemplateColumns = '160px 1fr'
+              item.style.gap = '20px'
+              item.style.alignItems = 'start'
+              item.style.background = '#1f2937'
+              item.style.padding = '20px'
+              item.style.borderRadius = '18px'
+              item.style.marginTop = '20px'
+
+              item.innerHTML = `
+                <img src="${imageURL}" style="width:160px; height:160px; object-fit:cover; border-radius:14px;" />
+
+                <div>
+                  <div style="font-size:24px; margin-bottom:12px;">NFT #${number}</div>
+
+                  <input id="multiName${number}" placeholder="NFT Name" value="${document.getElementById('nftBaseName').value || 'NFT'} #${number}" style="width:auto; min-width:220px; padding:12px; border-radius:10px; border:none; font-size:16px; margin-bottom:10px;" />
+
+                  <textarea id="multiDescription${number}" placeholder="NFT Description" style="width:auto; min-width:220px; padding:12px; border-radius:10px; border:none; font-size:16px; min-height:70px; margin-bottom:12px;">Generated with Rare Ink Studios NFT Creator</textarea>
+
+                  <div style="font-size:18px; margin-top:12px; margin-bottom:10px;">Traits for NFT #${number}</div>
+
+                  <div style="display:flex; gap:10px;">
+                    <input id="imageTraitType${number}" placeholder="Trait Type" style="flex:1; padding:10px; border-radius:8px; border:none; font-size:15px;" />
+
+                    <input id="imageTraitValue${number}" placeholder="Trait Value" style="flex:1; padding:10px; border-radius:8px; border:none; font-size:15px;" />
+
+                    <button onclick="addImageTrait(${number})" style="background:#2563eb; color:white; border:none; padding:10px 14px; border-radius:8px; cursor:pointer;">
+                      Add
+                    </button>
+                  </div>
+
+                  <div id="imageTraitList${number}" style="margin-top:12px;"></div>
+
+                  <div style="margin-top:12px; color:#9ca3af; font-size:14px;">Source file: ${file.name}</div>
+
+                  <div style="font-size:18px; margin-top:18px; margin-bottom:8px;">Live Metadata JSON</div>
+
+                  <pre id="multiPreview${number}" style="background:#0f172a; padding:14px; border-radius:10px; overflow:auto; font-size:12px; color:#93c5fd; white-space:pre-wrap;">Loading metadata...</pre>
+                </div>
+              `
+
+              list.appendChild(item)
+              updateMultiPreview(number)
+            })
+          }
+        }
+
+        function addImageTrait(number) {
+          const traitType = document.getElementById('imageTraitType' + number).value
+          const traitValue = document.getElementById('imageTraitValue' + number).value
+
+          if (!traitType || !traitValue) {
+            alert('Please enter both a Trait Type and Trait Value for this NFT.')
+            return
+          }
+
+          if (!perImageTraits[number]) {
+            perImageTraits[number] = []
+          }
+
+          perImageTraits[number].push({
+            trait_type: traitType,
+            value: traitValue
+          })
+
+          document.getElementById('imageTraitType' + number).value = ''
+          document.getElementById('imageTraitValue' + number).value = ''
+
+          renderImageTraits(number)
+          updateMultiPreview(number)
+        }
+
+        function renderImageTraits(number) {
+          const list = document.getElementById('imageTraitList' + number)
+
+          if (!list) {
+            return
+          }
+
+          list.innerHTML = ''
+
+          if (!perImageTraits[number]) {
+            perImageTraits[number] = []
+          }
+
+          perImageTraits[number].forEach(function(trait, index) {
+            const box = document.createElement('div')
+            box.style.background = '#111827'
+            box.style.padding = '10px'
+            box.style.borderRadius = '10px'
+            box.style.marginTop = '8px'
+            box.style.fontSize = '15px'
+            box.style.display = 'flex'
+            box.style.justifyContent = 'space-between'
+            box.style.alignItems = 'center'
+            box.style.gap = '8px'
+
+            const text = document.createElement('div')
+            text.innerHTML = trait.trait_type + ' → ' + trait.value
+
+            const buttons = document.createElement('div')
+            buttons.style.display = 'flex'
+            buttons.style.gap = '6px'
+
+            const editButton = document.createElement('button')
+            editButton.innerHTML = 'Edit'
+            editButton.style.background = '#2563eb'
+            editButton.style.color = 'white'
+            editButton.style.border = 'none'
+            editButton.style.borderRadius = '8px'
+            editButton.style.padding = '5px 9px'
+            editButton.style.cursor = 'pointer'
+
+            editButton.onclick = function() {
+              document.getElementById('imageTraitType' + number).value = trait.trait_type
+              document.getElementById('imageTraitValue' + number).value = trait.value
+
+              perImageTraits[number].splice(index, 1)
+
+              renderImageTraits(number)
+            }
+
+            const removeButton = document.createElement('button')
+            removeButton.innerHTML = 'Remove'
+            removeButton.style.background = '#dc2626'
+            removeButton.style.color = 'white'
+            removeButton.style.border = 'none'
+            removeButton.style.borderRadius = '8px'
+            removeButton.style.padding = '5px 9px'
+            removeButton.style.cursor = 'pointer'
+
+            removeButton.onclick = function() {
+              perImageTraits[number].splice(index, 1)
+
+              renderImageTraits(number)
+            }
+
+            buttons.appendChild(editButton)
+            buttons.appendChild(removeButton)
+
+            box.appendChild(text)
+            box.appendChild(buttons)
+
+            list.appendChild(box)
+          })
+        }
+
+        function updateMultiPreview(number) {
+          const previewBox = document.getElementById('multiPreview' + number)
+
+          if (!previewBox) {
+            return
+          }
+
+          const nameInput = document.getElementById('multiName' + number)
+          const descriptionInput = document.getElementById('multiDescription' + number)
+
+          const metadata = {
+            name: nameInput ? nameInput.value : 'NFT #' + number,
+            description: descriptionInput ? descriptionInput.value : '',
+            image: number + '.jpg',
+            attributes: [
+              ...sharedTraits,
+              ...(perImageTraits[number] || [])
+            ]
+          }
+
+          previewBox.textContent = JSON.stringify(metadata, null, 2)
+        }
+
+        function updateAllMultiPreviews() {
+          Object.keys(perImageTraits).forEach(function(number) {
+            updateMultiPreview(number)
+          })
+        }
+
+        function addTrait() {
+          const traitType = document.getElementById('traitType').value
+          const traitValue = document.getElementById('traitValue').value
+
+          if (!traitType || !traitValue) {
+            alert('Please enter both a Shared Trait Type and Shared Trait Value.')
+            return
+          }
+
+          sharedTraits.push({
+            trait_type: traitType,
+            value: traitValue
+          })
+
+          renderSharedTraits()
+          updateAllMultiPreviews()
+
+          document.getElementById('traitType').value = ''
+          document.getElementById('traitValue').value = ''
+
+          if (typeof updateMetadataPreview === 'function') {
+            updateMetadataPreview()
+          }
+        }
+
+        function renderSharedTraits() {
+          const traitList = document.getElementById('traitList')
+          traitList.innerHTML = ''
+
+          sharedTraits.forEach(function(trait, index) {
+            const traitBox = document.createElement('div')
+            traitBox.style.background = '#1f2937'
+            traitBox.style.padding = '14px'
+            traitBox.style.borderRadius = '12px'
+            traitBox.style.marginTop = '12px'
+            traitBox.style.fontSize = '18px'
+            traitBox.style.display = 'flex'
+            traitBox.style.justifyContent = 'space-between'
+            traitBox.style.alignItems = 'center'
+            traitBox.style.gap = '10px'
+
+            const traitText = document.createElement('div')
+            traitText.innerHTML = trait.trait_type + ' → ' + trait.value
+
+            const buttons = document.createElement('div')
+            buttons.style.display = 'flex'
+            buttons.style.gap = '8px'
+
+            const editButton = document.createElement('button')
+            editButton.innerHTML = 'Edit'
+            editButton.style.background = '#2563eb'
+            editButton.style.color = 'white'
+            editButton.style.border = 'none'
+            editButton.style.borderRadius = '8px'
+            editButton.style.padding = '6px 10px'
+            editButton.style.cursor = 'pointer'
+
+            editButton.onclick = function() {
+              document.getElementById('traitType').value = trait.trait_type
+              document.getElementById('traitValue').value = trait.value
+
+              sharedTraits.splice(index, 1)
+
+              renderSharedTraits()
+
+              if (typeof updateMetadataPreview === 'function') {
+                updateMetadataPreview()
+              }
+            }
+
+            const removeButton = document.createElement('button')
+            removeButton.innerHTML = 'Remove'
+            removeButton.style.background = '#dc2626'
+            removeButton.style.color = 'white'
+            removeButton.style.border = 'none'
+            removeButton.style.borderRadius = '8px'
+            removeButton.style.padding = '6px 10px'
+            removeButton.style.cursor = 'pointer'
+
+            removeButton.onclick = function() {
+              sharedTraits.splice(index, 1)
+
+              renderSharedTraits()
+
+              if (typeof updateMetadataPreview === 'function') {
+                updateMetadataPreview()
+              }
+            }
+
+            buttons.appendChild(editButton)
+            buttons.appendChild(removeButton)
+
+            traitBox.appendChild(traitText)
+            traitBox.appendChild(buttons)
+
+            traitList.appendChild(traitBox)
+          })
+        }
+
+        let randomizerTraits = []
+        let randomizerTraitRules = []
+        let randomizerLayerChances = {}
+        let randomizerLayerOrder = []
+        let selectedRandomTraitImage = null
+        let artists = [{ id: 'unassigned', name: 'Unassigned Artist', handle: '', website: '', wallet: '', credit: '' }]
+        let selectedArtistIds = []
+        let artistCombinationMode = 'none'
+        let editingArtistId = null
+
+        function artistById(id) {
+          return artists.find(function(a) { return a.id === id }) || artists[0]
+        }
+
+        function contributorsForItems(items) {
+          const grouped = {}
+          ;(items || []).forEach(function(item) {
+            const id = item.artistId || 'unassigned'; const a = artistById(id)
+            if (!grouped[id]) grouped[id] = { artist_id:id, artist_name:a.name, handle:a.handle||'', website:a.website||'', wallet:a.wallet||'', credit:a.credit||'', contributed_traits:[] }
+            grouped[id].contributed_traits.push({ layer:displayLayerName(item.layer), trait:item.trait })
+          })
+          return Object.keys(grouped).map(function(id) { return grouped[id] })
+        }
+
+        function safeArtistId(name) {
+          return 'artist-' + String(name || 'artist').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') + '-' + Date.now().toString(36)
+        }
+
+        function addOrUpdateArtist() {
+          const name = document.getElementById('artistNameInput').value.trim()
+          if (!name) { alert('Enter the artist name first.'); return }
+          const data = {
+            id: editingArtistId || safeArtistId(name), name: name,
+            handle: document.getElementById('artistHandleInput').value.trim(),
+            website: document.getElementById('artistWebsiteInput').value.trim(),
+            wallet: document.getElementById('artistWalletInput').value.trim(),
+            credit: document.getElementById('artistCreditInput').value.trim()
+          }
+          const index = artists.findIndex(function(a) { return a.id === data.id })
+          if (index >= 0) artists[index] = data; else artists.push(data)
+          editingArtistId = null
+          ;['artistNameInput','artistHandleInput','artistWebsiteInput','artistWalletInput','artistCreditInput'].forEach(function(id) { document.getElementById(id).value = '' })
+          renderArtistManager(); autoSaveNightShotsProject()
+        }
+
+        function editArtist(id) {
+          const a = artistById(id); editingArtistId = a.id
+          document.getElementById('artistNameInput').value = a.name || ''
+          document.getElementById('artistHandleInput').value = a.handle || ''
+          document.getElementById('artistWebsiteInput').value = a.website || ''
+          document.getElementById('artistWalletInput').value = a.wallet || ''
+          document.getElementById('artistCreditInput').value = a.credit || ''
+        }
+
+        function deleteArtist(id) {
+          if (id === 'unassigned') { alert('Unassigned Artist cannot be deleted.'); return }
+          const used = randomizerTraits.filter(function(t) { return t.artistId === id }).length
+          if (used && !confirm('This artist owns ' + used + ' traits. Delete the artist and move those traits to Unassigned Artist?')) return
+          randomizerTraits.forEach(function(t) { if (t.artistId === id) { t.artistId = 'unassigned'; t.artistName = 'Unassigned Artist' } })
+          artists = artists.filter(function(a) { return a.id !== id }); selectedArtistIds = selectedArtistIds.filter(function(x) { return x !== id })
+          renderArtistManager(); renderRandomTraits(); autoSaveNightShotsProject()
+        }
+
+        function toggleArtistSelected(id, checked) {
+          if (checked && !selectedArtistIds.includes(id)) selectedArtistIds.push(id)
+          if (!checked) selectedArtistIds = selectedArtistIds.filter(function(x) { return x !== id })
+          autoSaveNightShotsProject()
+        }
+
+        function reassignTraitArtist(index, id) {
+          const a = artistById(id); if (!randomizerTraits[index]) return
+          randomizerTraits[index].artistId = a.id; randomizerTraits[index].artistName = a.name
+          renderRandomTraits(); autoSaveNightShotsProject()
+        }
+
+        function renderArtistManager() {
+          const list = document.getElementById('artistList'); if (!list) return
+          list.innerHTML = artists.map(function(a) {
+            return '<div style="display:flex;gap:8px;align-items:center;background:#1f2937;padding:9px;margin-top:7px;border-radius:9px"><strong style="flex:1">' + a.name + '</strong><span>' + (a.handle || '') + '</span><button type="button" data-artist-id="' + a.id + '" onclick="editArtist(this.dataset.artistId)">Edit</button><button type="button" data-artist-id="' + a.id + '" onclick="deleteArtist(this.dataset.artistId)">Delete</button></div>'
+          }).join('')
+          const options = artists.map(function(a) { return '<option value="' + a.id + '">' + a.name + '</option>' }).join('')
+          const assign = document.getElementById('randomTraitArtist'); if (assign) { const old=assign.value; assign.innerHTML=options; if (artists.some(function(a){return a.id===old})) assign.value=old }
+          const filter = document.getElementById('artistTraitFilter'); if (filter) { const old=filter.value; filter.innerHTML='<option value="all">All Artists</option>'+options; if (old) filter.value=old }
+          const checks = document.getElementById('artistSelectionList'); if (checks) checks.innerHTML='<strong>Artists used by the selected mode:</strong> '+artists.filter(function(a){return a.id!=='unassigned'}).map(function(a){return '<label style="margin-left:12px"><input type="checkbox" data-artist-id="'+a.id+'" '+(selectedArtistIds.includes(a.id)?'checked':'')+' onchange="toggleArtistSelected(this.dataset.artistId,this.checked)"> '+a.name+'</label>'}).join('')
+          const mode = document.getElementById('artistCombinationMode'); if (mode) mode.value = artistCombinationMode
+        }
+
+        function showRandomTraitImageName() {
+          const fileInput = document.getElementById('randomTraitImage')
+          const label = document.getElementById('randomTraitImageName')
+
+          if (fileInput.files.length > 0) {
+            selectedRandomTraitImage = fileInput.files[0]
+            label.innerHTML = 'Selected trait image: ' + selectedRandomTraitImage.name
+          } else {
+            selectedRandomTraitImage = null
+            label.innerHTML = 'No trait image selected.'
+          }
+        }
+
+        function addRandomTrait() {
+          const rawLayerName = document.getElementById('randomLayerName').value
+          const traitName = document.getElementById('randomTraitName').value.trim()
+          const rarity = document.getElementById('randomTraitRarity').value.trim()
+
+          const layerName = displayLayerName(rawLayerName)
+
+          if (!layerName || !traitName || !rarity) {
+            alert('Please enter Layer Name, Trait Name, and Rarity %.')
+            return
+          }
+
+          if (!selectedRandomTraitImage) {
+            alert('Please choose an image for this trait.')
+            return
+          }
+
+          randomizerTraits.push({
+            artistId: document.getElementById('randomTraitArtist').value || 'unassigned',
+            artistName: artistById(document.getElementById('randomTraitArtist').value || 'unassigned').name,
+            layer: layerName,
+            trait: traitName,
+            rarity: rarity,
+            imageName: selectedRandomTraitImage.name,
+            imageURL: URL.createObjectURL(selectedRandomTraitImage)
+          })
+
+          document.getElementById('randomLayerName').value = ''
+          document.getElementById('randomTraitName').value = ''
+          document.getElementById('randomTraitRarity').value = ''
+          document.getElementById('randomTraitImage').value = ''
+
+          selectedRandomTraitImage = null
+          document.getElementById('randomTraitImageName').innerHTML = 'No trait image selected.'
+
+          renderRandomTraits()
+        }
+
+        function renderRandomTraits() {
+            const list = document.getElementById('randomTraitList')
+
+            if (!list) {
+              return
+            }
+
+            list.innerHTML = ''
+
+            const groupedLayers = {}
+
+            randomizerTraits.forEach(function(item, index) {
+              item.layer = displayLayerName(item.layer)
+              item.artistId = item.artistId || 'unassigned'
+              item.artistName = artistById(item.artistId).name
+
+              const activeArtistFilter = document.getElementById('artistTraitFilter')?.value || 'all'
+              if (activeArtistFilter !== 'all' && item.artistId !== activeArtistFilter) return
+
+              if (!groupedLayers[item.layer]) {
+                groupedLayers[item.layer] = []
+              }
+
+              groupedLayers[item.layer].push({
+                item: item,
+                index: index
+              })
+            })
+
+            orderedLayerNames(groupedLayers).forEach(function(layerName) {
+              const layerBox = document.createElement('div')
+              layerBox.style.background = '#111827'
+              layerBox.style.padding = '18px'
+              layerBox.style.borderRadius = '14px'
+              layerBox.style.marginTop = '18px'
+
+              const layerHeader = document.createElement('div')
+              layerHeader.style.display = 'flex'
+              layerHeader.style.justifyContent = 'space-between'
+              layerHeader.style.alignItems = 'center'
+              layerHeader.style.gap = '12px'
+              layerHeader.style.marginBottom = '15px'
+
+              const layerTitle = document.createElement('h3')
+              layerTitle.textContent = layerName
+              layerTitle.style.margin = '0'
+
+              const chanceWrap = document.createElement('div')
+              chanceWrap.style.display = 'flex'
+              chanceWrap.style.alignItems = 'center'
+              chanceWrap.style.gap = '8px'
+              chanceWrap.style.color = '#d1d5db'
+              chanceWrap.style.fontSize = '14px'
+
+              const chanceLabel = document.createElement('span')
+              chanceLabel.textContent = 'Layer Chance %'
+
+              const chanceInput = document.createElement('input')
+              chanceInput.type = 'number'
+              chanceInput.min = '0'
+              chanceInput.max = '100'
+              chanceInput.value = randomizerLayerChances[layerName] !== undefined
+                ? randomizerLayerChances[layerName]
+                : defaultLayerChance(layerName)
+              chanceInput.style.width = '80px'
+              chanceInput.style.padding = '8px'
+              chanceInput.style.borderRadius = '8px'
+              chanceInput.style.border = 'none'
+
+              randomizerLayerChances[layerName] = parseFloat(chanceInput.value)
+
+              chanceInput.onchange = function() {
+                let value = parseFloat(chanceInput.value)
+                if (isNaN(value)) value = defaultLayerChance(layerName)
+                value = Math.max(0, Math.min(100, value))
+                chanceInput.value = value
+                randomizerLayerChances[layerName] = value
+
+                if (typeof autoSaveNightShotsProject === 'function') {
+                  autoSaveNightShotsProject()
+                }
+              }
+
+              chanceWrap.appendChild(chanceLabel)
+              chanceWrap.appendChild(chanceInput)
+
+              const orderWrap = document.createElement('div')
+              orderWrap.style.display = 'flex'
+              orderWrap.style.gap = '6px'
+
+              const upButton = document.createElement('button')
+              upButton.type = 'button'
+              upButton.innerHTML = '↑'
+              upButton.title = 'Move layer up'
+              upButton.style.background = '#374151'
+              upButton.style.color = 'white'
+              upButton.style.border = 'none'
+              upButton.style.borderRadius = '8px'
+              upButton.style.padding = '8px 10px'
+              upButton.style.cursor = 'pointer'
+              upButton.onclick = function() {
+                moveLayerUp(layerName)
+              }
+
+              const downButton = document.createElement('button')
+              downButton.type = 'button'
+              downButton.innerHTML = '↓'
+              downButton.title = 'Move layer down'
+              downButton.style.background = '#374151'
+              downButton.style.color = 'white'
+              downButton.style.border = 'none'
+              downButton.style.borderRadius = '8px'
+              downButton.style.padding = '8px 10px'
+              downButton.style.cursor = 'pointer'
+              downButton.onclick = function() {
+                moveLayerDown(layerName)
+              }
+
+              orderWrap.appendChild(upButton)
+              orderWrap.appendChild(downButton)
+
+              const rightControls = document.createElement('div')
+              rightControls.style.display = 'flex'
+              rightControls.style.alignItems = 'center'
+              rightControls.style.gap = '10px'
+              rightControls.appendChild(chanceWrap)
+              rightControls.appendChild(orderWrap)
+
+              layerHeader.appendChild(layerTitle)
+              layerHeader.appendChild(rightControls)
+              layerBox.appendChild(layerHeader)
+
+              groupedLayers[layerName].forEach(function(entry) {
+                const item = entry.item
+                const index = entry.index
+
+                const row = document.createElement('div')
+                row.style.background = '#1f2937'
+                row.style.padding = '12px'
+                row.style.borderRadius = '10px'
+                row.style.marginTop = '10px'
+                row.style.display = 'flex'
+                row.style.justifyContent = 'space-between'
+                row.style.alignItems = 'center'
+                row.style.gap = '14px'
+
+                const label = document.createElement('div')
+                label.style.display = 'flex'
+                label.style.alignItems = 'center'
+                label.style.gap = '12px'
+                label.style.flex = '1'
+
+                const preview = document.createElement('img')
+                preview.src = item.imageURL
+                preview.style.width = '48px'
+                preview.style.height = '48px'
+                preview.style.objectFit = 'contain'
+                preview.style.borderRadius = '8px'
+
+                const text = document.createElement('div')
+                text.innerHTML =
+                  '<strong>' + item.trait + ' → ' + item.rarity + '%</strong><br>' +
+                  '<span style="color:#f9a8d4;">Artist: ' + artistById(item.artistId).name + '</span><br>' +
+                  '<span style="color:#9ca3af;">' + (item.imageName || item.fileName || 'Trait image') + '</span>'
+
+                label.appendChild(preview)
+                label.appendChild(text)
+
+                const remove = document.createElement('button')
+                const artistSelect = document.createElement('select')
+                artistSelect.innerHTML = artists.map(function(a) { return '<option value="' + a.id + '">' + a.name + '</option>' }).join('')
+                artistSelect.value = item.artistId
+                artistSelect.onchange = function() { reassignTraitArtist(index, artistSelect.value) }
+                remove.type = 'button'
+                remove.innerHTML = 'Remove'
+                remove.style.background = '#dc2626'
+                remove.style.color = 'white'
+                remove.style.border = 'none'
+                remove.style.borderRadius = '8px'
+                remove.style.padding = '8px 12px'
+                remove.style.cursor = 'pointer'
+
+                remove.onclick = function() {
+                  randomizerTraits.splice(index, 1)
+                  renderRandomTraits()
+                }
+
+                row.appendChild(label)
+                row.appendChild(artistSelect)
+                row.appendChild(remove)
+                layerBox.appendChild(row)
+              })
+
+              list.appendChild(layerBox)
+            })
+
+            if (typeof refreshTraitRuleOptions === 'function') {
+              refreshTraitRuleOptions()
+            }
+          }
+
+
+
+        function toggleTraitBuilderVisibility() {
+          const content = document.getElementById('traitBuilderContent')
+          const button = document.getElementById('toggleTraitBuilderButton')
+
+          if (!content || !button) return
+
+          const hidden = content.style.display === 'none'
+
+          content.style.display = hidden ? '' : 'none'
+          button.innerHTML = hidden ? 'Hide Traits' : 'Show Traits'
+        }
+
+        function toggleTraitRulesVisibility() {
+          const content = document.getElementById('traitRulesContent')
+          const button = document.getElementById('toggleTraitRulesButton')
+
+          if (!content || !button) return
+
+          const hidden = content.style.display === 'none'
+
+          content.style.display = hidden ? '' : 'none'
+          button.innerHTML = hidden ? 'Hide Rules' : 'Show Rules'
+        }
+
+
+
+        function updateLayerOrderFromTraits() {
+          const seen = []
+
+          randomizerTraits.forEach(function(item) {
+            const layer = displayLayerName(item.layer)
+            if (!seen.includes(layer)) seen.push(layer)
+          })
+
+          randomizerLayerOrder = randomizerLayerOrder.filter(function(layer) {
+            return seen.includes(layer)
+          })
+
+          seen.forEach(function(layer) {
+            if (!randomizerLayerOrder.includes(layer)) {
+              randomizerLayerOrder.push(layer)
+            }
+          })
+        }
+
+        function orderedLayerNames(groupedLayers) {
+          updateLayerOrderFromTraits()
+
+          const keys = Object.keys(groupedLayers)
+
+          const ordered = randomizerLayerOrder.filter(function(layer) {
+            return keys.includes(layer)
+          })
+
+          keys.forEach(function(layer) {
+            if (!ordered.includes(layer)) ordered.push(layer)
+          })
+
+          return ordered
+        }
+
+        function moveLayerUp(layerName) {
+          updateLayerOrderFromTraits()
+
+          const index = randomizerLayerOrder.indexOf(layerName)
+          if (index <= 0) return
+
+          const temp = randomizerLayerOrder[index - 1]
+          randomizerLayerOrder[index - 1] = randomizerLayerOrder[index]
+          randomizerLayerOrder[index] = temp
+
+          renderRandomTraits()
+          autoSaveNightShotsProject()
+        }
+
+        function moveLayerDown(layerName) {
+          updateLayerOrderFromTraits()
+
+          const index = randomizerLayerOrder.indexOf(layerName)
+          if (index === -1 || index >= randomizerLayerOrder.length - 1) return
+
+          const temp = randomizerLayerOrder[index + 1]
+          randomizerLayerOrder[index + 1] = randomizerLayerOrder[index]
+          randomizerLayerOrder[index] = temp
+
+          renderRandomTraits()
+          autoSaveNightShotsProject()
+        }
+
+        function defaultLayerChance(layerName) {
+          const lowerLayer = String(displayLayerName(layerName) || '').toLowerCase()
+
+          if (
+            lowerLayer.includes('accessory') ||
+            lowerLayer.includes('accessories') ||
+            lowerLayer.includes('hat') ||
+            lowerLayer.includes('hand') ||
+            lowerLayer.includes('prop') ||
+            lowerLayer.includes('item')
+          ) {
+            return 35
+          }
+
+          if (
+            lowerLayer.includes('clothes') ||
+            lowerLayer.includes('clothing') ||
+            lowerLayer.includes('shirt') ||
+            lowerLayer.includes('outfit') ||
+            lowerLayer.includes('jacket')
+          ) {
+            return 70
+          }
+
+          return 100
+        }
+
+        function getLayerChance(layerName) {
+          const cleanLayer = displayLayerName(layerName)
+
+          if (randomizerLayerChances[cleanLayer] !== undefined) {
+            let value = parseFloat(randomizerLayerChances[cleanLayer])
+            if (isNaN(value)) value = defaultLayerChance(cleanLayer)
+            return Math.max(0, Math.min(100, value))
+          }
+
+          const fallback = defaultLayerChance(cleanLayer)
+          randomizerLayerChances[cleanLayer] = fallback
+          return fallback
+        }
+
+        function traitRuleKey(item) {
+          return displayLayerName(item.layer) + '::' + item.trait
+        }
+
+        function traitRuleLabelFromKey(key) {
+          return String(key || '').replace('::', ' → ')
+        }
+
+        function refreshTraitRuleOptions() {
+          const a = document.getElementById('ruleTraitA')
+          const b = document.getElementById('ruleTraitB')
+
+          if (!a || !b) return
+
+          const currentA = a.value
+          const currentB = b.value
+
+          const keys = []
+          randomizerTraits.forEach(function(item) {
+            const key = traitRuleKey(item)
+            if (!keys.includes(key)) keys.push(key)
+          })
+
+          const html = '<option value="">Choose trait</option>' + keys.map(function(key) {
+            return '<option value="' + key + '">' + traitRuleLabelFromKey(key) + '</option>'
+          }).join('')
+
+          a.innerHTML = html
+          b.innerHTML = html
+
+          if (keys.includes(currentA)) a.value = currentA
+          if (keys.includes(currentB)) b.value = currentB
+        }
+
+        function addTraitRule() {
+          const a = document.getElementById('ruleTraitA')
+          const type = document.getElementById('ruleType')
+          const b = document.getElementById('ruleTraitB')
+
+          if (!a || !type || !b || !a.value || !b.value) {
+            alert('Choose both traits for the rule.')
+            return
+          }
+
+          if (a.value === b.value) {
+            alert('Choose two different traits.')
+            return
+          }
+
+          const exists = randomizerTraitRules.some(function(rule) {
+            return rule.a === a.value && rule.b === b.value && rule.type === type.value
+          })
+
+          if (exists) {
+            alert('That rule already exists.')
+            return
+          }
+
+          randomizerTraitRules.push({
+            a: a.value,
+            b: b.value,
+            type: type.value
+          })
+
+          renderTraitRules()
+          autoSaveNightShotsProject()
+        }
+
+        function renderTraitRules() {
+          const list = document.getElementById('traitRuleList')
+          if (!list) return
+
+          if (!randomizerTraitRules.length) {
+            list.innerHTML = 'No rules added yet.'
+            return
+          }
+
+          list.innerHTML = ''
+
+          randomizerTraitRules.forEach(function(rule, index) {
+            const row = document.createElement('div')
+            row.style.background = '#111827'
+            row.style.padding = '10px'
+            row.style.borderRadius = '10px'
+            row.style.marginTop = '8px'
+            row.style.display = 'flex'
+            row.style.justifyContent = 'space-between'
+            row.style.gap = '10px'
+            row.style.alignItems = 'center'
+
+            const text = document.createElement('div')
+            const ruleText = rule.type === 'requires' ? 'requires' : 'cannot pair with'
+            text.innerHTML =
+              '<strong>' + traitRuleLabelFromKey(rule.a) + '</strong> ' +
+              ruleText +
+              ' <strong>' + traitRuleLabelFromKey(rule.b) + '</strong>'
+
+            const remove = document.createElement('button')
+            remove.type = 'button'
+            remove.innerHTML = 'Remove'
+            remove.style.background = '#dc2626'
+            remove.style.color = 'white'
+            remove.style.border = 'none'
+            remove.style.borderRadius = '8px'
+            remove.style.padding = '7px 10px'
+            remove.style.cursor = 'pointer'
+
+            remove.onclick = function() {
+              randomizerTraitRules.splice(index, 1)
+              renderTraitRules()
+              autoSaveNightShotsProject()
+            }
+
+            row.appendChild(text)
+            row.appendChild(remove)
+            list.appendChild(row)
+          })
+        }
+
+        function removeAllTraitRules() {
+          if (!randomizerTraitRules.length) {
+            alert('No rules to remove.')
+            return
+          }
+
+          if (!confirm('Remove all trait rules?')) return
+
+          randomizerTraitRules = []
+          renderTraitRules()
+
+          if (typeof autoSaveNightShotsProject === 'function') {
+            autoSaveNightShotsProject()
+          }
+        }
+
+        window.randomizerComboPassesRules = function(items) {
+          const keys = (items || []).map(function(item) {
+            return traitRuleKey(item)
+          })
+
+          for (let i = 0; i < randomizerTraitRules.length; i++) {
+            const rule = randomizerTraitRules[i]
+            const hasA = keys.includes(rule.a)
+            const hasB = keys.includes(rule.b)
+
+            if (rule.type === 'cannot_pair' && hasA && hasB) {
+              return false
+            }
+
+            if (rule.type === 'requires' && hasA && !hasB) {
+              return false
+            }
+          }
+
+          return true
+        }
+
+        function displayLayerName(layerName) {
+            const raw = String(layerName || '').toLowerCase()
+            const normalized = raw.replace(/[^a-z]/g, '')
+
+            if (normalized.includes('accessory') || normalized.includes('acceory') || normalized.includes('accesory') || normalized.includes('access') || normalized.includes('acc')) {
+              return 'Accessory'
+            }
+
+            if (normalized.includes('base') || normalized.includes('bae') || normalized === 'ba') {
+              return 'Base'
+            }
+
+            if (normalized.includes('eyes') || normalized.includes('eye')) {
+              return 'Eyes'
+            }
+
+            if (normalized.includes('hat')) {
+              return 'Hat'
+            }
+
+            if (normalized.includes('background') || normalized.includes('bg')) {
+              return 'Background'
+            }
+
+            return String(layerName || '').trim()
+          }
+        
+        let generatedRandomNFTsForExport = []
+
+
+        async function imageURLToDataURLForProject(imageURL) {
+          if (!imageURL) return ''
+
+          if (String(imageURL).startsWith('data:')) {
+            return imageURL
+          }
+
+          try {
+            const blob = await fetch(imageURL).then(function(r) { return r.blob() })
+
+            return await new Promise(function(resolve) {
+              const reader = new FileReader()
+              reader.onload = function() { resolve(reader.result) }
+              reader.readAsDataURL(blob)
+            })
+          } catch (e) {
+            console.error('Could not preserve project image:', e)
+            return imageURL
+          }
+        }
+
+        async function getNightShotsProjectData() {
+          const packedTraits = []
+
+          for (let i = 0; i < (randomizerTraits || []).length; i++) {
+            const item = randomizerTraits[i]
+
+            packedTraits.push({
+              artistId: item.artistId || 'unassigned',
+              artistName: artistById(item.artistId || 'unassigned').name,
+              layer: displayLayerName(item.layer),
+              trait: item.trait || '',
+              rarity: item.rarity || '',
+              imageName: item.imageName || item.fileName || 'Trait image',
+              fileName: item.fileName || item.imageName || 'Trait image',
+              imageURL: await imageURLToDataURLForProject(item.imageURL)
+            })
+          }
+
+          return {
+            version: 'NightShotsGeneratorV3MultiArtist',
+            savedAt: new Date().toISOString(),
+
+            collection: {
+              collectionName: document.getElementById('collectionName')?.value || '',
+              nftBaseName: document.getElementById('nftBaseName')?.value || '',
+              supplyAmount: document.getElementById('supplyAmount')?.value || '',
+              oneOfOneCount: document.getElementById('advancedOneOfOneCount')?.value || '0'
+            },
+
+            randomizerTraits: packedTraits,
+            traits: packedTraits,
+            sharedTraits: sharedTraits || [],
+            perImageTraits: perImageTraits || {},
+            randomizerTraitRules: randomizerTraitRules || [],
+            randomizerLayerChances: randomizerLayerChances || {},
+            randomizerLayerOrder: randomizerLayerOrder || [],
+            artists: artists || [],
+            selectedArtistIds: selectedArtistIds || [],
+            artistCombinationMode: artistCombinationMode || 'none'
+          }
+        }
+
+        async function autoSaveNightShotsProject() {
+          try {
+            const project = await getNightShotsProjectData()
+            localStorage.setItem(
+              'nightShotsAutoSaveProject',
+              JSON.stringify(project)
+            )
+          } catch (e) {
+            console.error('Auto save failed:', e)
+          }
+        }
+
+        async function restoreNightShotsAutosave() {
+          try {
+            const raw = localStorage.getItem('nightShotsAutoSaveProject')
+
+            if (!raw) {
+              alert('No auto save found.')
+              return
+            }
+
+            const project = JSON.parse(raw)
+
+            applyNightShotsProject(project)
+
+            alert('Auto save restored successfully. Traits loaded: ' + (randomizerTraits ? randomizerTraits.length : 0))
+          } catch (e) {
+            console.error(e)
+            alert('Failed to restore auto save.')
+          }
+        }
+
+        function applyNightShotsProject(project) {
+          if (!project) return
+
+          artists = Array.isArray(project.artists) && project.artists.length
+            ? project.artists
+            : [{ id: 'unassigned', name: 'Unassigned Artist', handle: '', website: '', wallet: '', credit: '' }]
+          if (!artists.some(function(a) { return a.id === 'unassigned' })) artists.unshift({ id: 'unassigned', name: 'Unassigned Artist', handle: '', website: '', wallet: '', credit: '' })
+          selectedArtistIds = Array.isArray(project.selectedArtistIds) ? project.selectedArtistIds : []
+          artistCombinationMode = project.artistCombinationMode || 'none'
+
+          if (project.collection) {
+            const collectionNameInput = document.getElementById('collectionName')
+            const nftBaseNameInput = document.getElementById('nftBaseName')
+            const supplyAmountInput = document.getElementById('supplyAmount')
+            const oneBox = document.getElementById('advancedOneOfOneCount')
+
+            if (collectionNameInput) {
+              collectionNameInput.value = project.collection.collectionName || ''
+            }
+
+            if (nftBaseNameInput) {
+              nftBaseNameInput.value = project.collection.nftBaseName || ''
+            }
+
+            if (supplyAmountInput) {
+              supplyAmountInput.value = project.collection.supplyAmount || ''
+            }
+
+            if (oneBox) {
+              oneBox.value = project.collection.oneOfOneCount || '0'
+            }
+          }
+
+          const loadedTraits =
+            Array.isArray(project.randomizerTraits) ? project.randomizerTraits :
+            Array.isArray(project.traits) ? project.traits :
+            []
+
+          randomizerTraits = loadedTraits.map(function(item) {
+            return {
+              artistId: item.artistId || 'unassigned',
+              artistName: artistById(item.artistId || 'unassigned').name,
+              layer: displayLayerName(item.layer),
+              trait: item.trait || '',
+              rarity: item.rarity || '',
+              imageName: item.imageName || item.fileName || 'Trait image',
+              fileName: item.fileName || item.imageName || 'Trait image',
+              imageURL: item.imageURL || ''
+            }
+          })
+
+          sharedTraits = Array.isArray(project.sharedTraits)
+            ? project.sharedTraits
+            : []
+
+          perImageTraits = project.perImageTraits || {}
+          randomizerTraitRules = Array.isArray(project.randomizerTraitRules) ? project.randomizerTraitRules : []
+          randomizerLayerChances = project.randomizerLayerChances || {}
+          randomizerLayerOrder = Array.isArray(project.randomizerLayerOrder) ? project.randomizerLayerOrder : []
+
+          if (typeof selectMode === 'function') {
+            selectMode('advanced')
+          }
+
+          setTimeout(function() {
+            if (typeof renderRandomTraits === 'function') {
+              renderRandomTraits()
+            }
+
+            renderArtistManager()
+
+            if (typeof renderSharedTraits === 'function') {
+              renderSharedTraits()
+            }
+
+            if (typeof updateAllMultiPreviews === 'function') {
+              updateAllMultiPreviews()
+            }
+
+            if (typeof refreshTraitRuleOptions === 'function') {
+              refreshTraitRuleOptions()
+            }
+
+            if (typeof renderTraitRules === 'function') {
+              renderTraitRules()
+            }
+
+            const status = document.getElementById('generationStatus')
+            if (status) {
+              status.style.display = 'block'
+              status.innerHTML = 'Project loaded. Traits restored: ' + randomizerTraits.length
+            }
+
+            console.log('PROJECT APPLIED:', {
+              traitsLoaded: randomizerTraits.length,
+              sharedTraitsLoaded: sharedTraits.length,
+              perImageTraitGroups: Object.keys(perImageTraits || {}).length
+            })
+          }, 100)
+        }
+
+        async function saveNightShotsProject() {
+          try {
+            const project = await getNightShotsProjectData()
+
+            const blob = new Blob(
+              [JSON.stringify(project, null, 2)],
+              { type: 'application/json' }
+            )
+
+            const url = URL.createObjectURL(blob)
+
+            const a = document.createElement('a')
+
+            const collectionName =
+              document.getElementById('collectionName')?.value ||
+              'night-shots-project'
+
+            const safeName = collectionName
+              .toLowerCase()
+              .replace(/[^a-z0-9]+/g, '-')
+              .replace(/^-+|-+$/g, '')
+
+            a.href = url
+            a.download = safeName + '-project.json'
+
+            document.body.appendChild(a)
+            a.click()
+            a.remove()
+
+            URL.revokeObjectURL(url)
+
+            await autoSaveNightShotsProject()
+
+            alert('Project saved successfully.')
+          } catch (e) {
+            console.error(e)
+            alert('Failed to save project.')
+          }
+        }
+
+        async function loadNightShotsProject(event) {
+          try {
+            const file = event.target.files[0]
+
+            if (!file) return
+
+            const text = await file.text()
+
+            const project = JSON.parse(text)
+
+            applyNightShotsProject(project)
+
+            await autoSaveNightShotsProject()
+
+            alert('Project loaded successfully. Traits loaded: ' + (randomizerTraits ? randomizerTraits.length : 0))
+          } catch (e) {
+            console.error(e)
+            alert('Failed to load project.')
+          }
+        }
+
+        setInterval(function() {
+          autoSaveNightShotsProject()
+        }, 15000)
+
+        setTimeout(function() { renderArtistManager() }, 100)
+
+        
+        async function downloadGeneratedNFTZip() {
+          let downloadStatus = document.getElementById('downloadZipStatus')
+
+          if (!downloadStatus) {
+            downloadStatus = document.createElement('div')
+            downloadStatus.id = 'downloadZipStatus'
+            downloadStatus.style.background = '#0f172a'
+            downloadStatus.style.color = '#dbeafe'
+            downloadStatus.style.border = '2px solid #2563eb'
+            downloadStatus.style.borderRadius = '12px'
+            downloadStatus.style.padding = '12px'
+            downloadStatus.style.marginTop = '14px'
+            downloadStatus.style.fontWeight = 'bold'
+
+            const output = document.getElementById('generatedRandomNFTs')
+            if (output) {
+              output.prepend(downloadStatus)
+            } else {
+              document.body.prepend(downloadStatus)
+            }
+          }
+
+          downloadStatus.style.display = 'block'
+          downloadStatus.innerHTML = 'Preparing ZIP download... please wait.'
+
+          try {
+
+            if (!generatedRandomNFTsForExport || !generatedRandomNFTsForExport.length) {
+              alert('Please generate NFTs first.')
+              return
+            }
+
+            if (typeof JSZip === 'undefined') {
+              alert('JSZip failed to load. Refresh page and try again.')
+              return
+            }
+
+            const keptNFTs = generatedRandomNFTsForExport.filter(function(nft) {
+              return nft.kept !== false
+            })
+
+            if (!keptNFTs.length) {
+              alert('No kept NFTs available.')
+              return
+            }
+
+            const zip = new JSZip()
+
+            const imageFolder = zip.folder('images')
+            const metadataFolder = zip.folder('metadata')
+
+            async function loadImage(src) {
+              return new Promise(function(resolve, reject) {
+                const img = new Image()
+
+                img.crossOrigin = 'anonymous'
+
+                img.onload = function() {
+                  resolve(img)
+                }
+
+                img.onerror = function(err) {
+                  reject(err)
+                }
+
+                img.src = src
+              })
+            }
+
+            function safeName(value, fallback) {
+              return String(value || fallback || 'nft')
+                .replace(/[^a-z0-9-_ ]/gi, '')
+                .trim()
+                .replace(/s+/g, '-') || fallback || 'nft'
+            }
+
+            for (let i = 0; i < keptNFTs.length; i++) {
+
+              downloadStatus.innerHTML = 'Building ZIP... NFT ' + (i + 1) + ' of ' + keptNFTs.length
+
+              const nft = keptNFTs[i]
+
+              const canvas = document.createElement('canvas')
+              canvas.width = 1000
+              canvas.height = 1000
+
+              const ctx = canvas.getContext('2d')
+
+              ctx.clearRect(0, 0, 1000, 1000)
+
+              for (let j = 0; j < nft.items.length; j++) {
+
+                const item = nft.items[j]
+
+                if (!item || !item.imageURL) continue
+
+                try {
+                  const img = await loadImage(item.imageURL)
+                  ctx.drawImage(img, 0, 0, 1000, 1000)
+                } catch (e) {
+                  console.log('Failed image load:', item)
+                }
+              }
+
+              const blob = await new Promise(function(resolve) {
+                canvas.toBlob(resolve, 'image/png')
+              })
+
+              const fileBase = safeName(
+                nft.name,
+                'generated-nft-' + (i + 1)
+              )
+
+              imageFolder.file(fileBase + '.png', blob)
+
+              const metadata = {
+                name: nft.name,
+                description: 'Generated with Rare Ink Studios / Night Shots NFT Creator',
+                image: 'images/' + fileBase + '.png',
+                contributors: contributorsForItems(nft.items),
+                attributes: nft.items.map(function(item) {
+                  return {
+                    trait_type: displayLayerName(item.layer),
+                    value: item.trait
+                  }
+                }).concat(contributorsForItems(nft.items).map(function(c) { return { trait_type:'Contributing Artist', value:c.artist_name } })).concat([
+                  {
+                    trait_type: 'Natural Combo Count',
+                    value: nft.comboCount + ' of ' + keptNFTs.length
+                  },
+                  {
+                    trait_type: 'Collection Rarity',
+                    value: nft.collectionRarity + '%'
+                  },
+                  {
+                    trait_type: 'Rarity Tier',
+                    value: nft.rarityTier
+                  },
+                  {
+                    trait_type: 'Rarity Rank',
+                    value: '#' + nft.rank
+                  }
+                ]).concat(
+                  nft.oneOfOne ? [{
+                    trait_type: 'Edition',
+                    value: '1 of 1'
+                  }] : []
+                )
+              }
+
+              metadataFolder.file(
+                fileBase + '.json',
+                JSON.stringify(applyExportSettings(metadata), null, 2)
+              )
+            }
+
+            downloadStatus.innerHTML = 'Compressing ZIP file...'
+
+            const zipBlob = await zip.generateAsync({
+              type: 'blob'
+            })
+
+            const url = URL.createObjectURL(zipBlob)
+
+            const a = document.createElement('a')
+
+            a.href = url
+            a.download = 'night-shots-randomized-nfts.zip'
+
+            document.body.appendChild(a)
+
+            a.click()
+
+            a.remove()
+
+            URL.revokeObjectURL(url)
+
+            downloadStatus.innerHTML = 'ZIP ready. Save window should be open now.'
+
+            setTimeout(function() {
+              downloadStatus.style.display = 'none'
+            }, 6000)
+
+            console.log('ZIP DOWNLOAD COMPLETE')
+
+          } catch (err) {
+
+            console.error(err)
+
+            if (downloadStatus) {
+              downloadStatus.style.background = '#7f1d1d'
+              downloadStatus.style.border = '2px solid #dc2626'
+              downloadStatus.style.color = 'white'
+              downloadStatus.innerHTML = 'ZIP generation failed. Check console.'
+            } else {
+              alert('ZIP generation failed. Check console.')
+            }
+          }
+        }
+
+
+        function startRandomNFTGeneration(button) {
+            if (window.nightShotsGenerating) {
+              alert('Generation is already running. Please wait.')
+              return
+            }
+
+            window.nightShotsGenerating = true
+
+            if (button) {
+              button.disabled = true
+              button.dataset.originalText = button.innerHTML
+              button.innerHTML = 'Generating...'
+              button.style.opacity = '0.6'
+              button.style.cursor = 'not-allowed'
+            }
+
+            const status = document.getElementById('generationStatus')
+            if (status) {
+              status.style.display = 'block'
+              status.innerHTML = 'Preparing generator...'
+            }
+
+            setTimeout(function() {
+              try {
+                generateRandomNFTs()
+              } finally {
+                window.nightShotsGenerating = false
+
+                if (button) {
+                  button.disabled = false
+                  button.innerHTML = button.dataset.originalText || 'Generate NFTs'
+                  button.style.opacity = '1'
+                  button.style.cursor = 'pointer'
+                }
+              }
+            }, 75)
+          }
+
+        function generateRandomNFTs() {
+            const output = document.getElementById('generatedRandomNFTs')
+            const statusBox = document.getElementById('generationStatus')
+            output.innerHTML = ''
+            generatedRandomNFTsForExport = []
+
+            if (statusBox) {
+              statusBox.style.display = 'block'
+              statusBox.innerHTML = 'Generating collection... please wait.'
+            }
+
+            if (!randomizerTraits || randomizerTraits.length === 0) {
+              alert('Please add randomizer traits first.')
+              return
+            }
+
+            let requestedCount = parseInt(document.getElementById('supplyAmount').value) || 5
+            requestedCount = Math.max(1, Math.min(10000, requestedCount))
+            document.getElementById('supplyAmount').value = requestedCount
+
+            const oneInput = document.getElementById('advancedOneOfOneCount')
+            let requestedOneOfOnes = oneInput ? parseInt(oneInput.value || '0', 10) : 0
+            requestedOneOfOnes = parseInt(requestedOneOfOnes || 0, 10)
+
+            if (isNaN(requestedOneOfOnes)) {
+              requestedOneOfOnes = 0
+            }
+
+            requestedOneOfOnes = Math.max(0, requestedOneOfOnes)
+
+            if (requestedOneOfOnes > 589) {
+              alert('Maximum TRUE 1/1 count is 589.')
+              requestedOneOfOnes = 589
+            }
+
+            requestedOneOfOnes = Math.min(requestedOneOfOnes, requestedCount)
+            if (oneInput) oneInput.value = requestedOneOfOnes
+
+            console.log('READ TRUE 1/1 INPUT VALUE:', requestedOneOfOnes)
+
+            artistCombinationMode = document.getElementById('artistCombinationMode')?.value || artistCombinationMode || 'none'
+            if (artistCombinationMode !== 'none' && selectedArtistIds.length === 0) {
+              alert('Select at least one artist in Artist Manager for this combination mode.')
+              return
+            }
+
+            const generationTraits = randomizerTraits.filter(function(item) {
+              item.artistId = item.artistId || 'unassigned'
+              if (artistCombinationMode === 'none') return true
+              return selectedArtistIds.includes(item.artistId)
+            })
+            if (!generationTraits.length) { alert('No traits are available for the selected artists.'); return }
+
+            const groupedLayers = {}
+            generationTraits.forEach(function(item) {
+              const cleanLayer = displayLayerName(item.layer)
+              if (!groupedLayers[cleanLayer]) groupedLayers[cleanLayer] = []
+              groupedLayers[cleanLayer].push(Object.assign({}, item, { layer: cleanLayer }))
+            })
+
+            function chooseTraitByRarity(traits, layerName) {
+              const cleanLayer = displayLayerName(layerName)
+              const lowerLayer = String(cleanLayer || '').toLowerCase()
+
+              let layerUseChance = getLayerChance(cleanLayer)
+
+              const totalChance = traits.reduce(function(total, trait) {
+                return total + (parseFloat(trait.rarity) || 0)
+              }, 0)
+
+              if (totalChance > 0 && totalChance < layerUseChance) {
+                layerUseChance = totalChance
+              }
+
+              const layerRoll = Math.random() * 100
+
+              if (layerRoll > layerUseChance) {
+                return null
+              }
+
+              const weightedTotal = traits.reduce(function(total, trait) {
+                return total + Math.max(0, parseFloat(trait.rarity) || 0)
+              }, 0)
+
+              if (weightedTotal <= 0) {
+                return traits[Math.floor(Math.random() * traits.length)]
+              }
+
+              const roll = Math.random() * weightedTotal
+              let running = 0
+
+              for (let i = 0; i < traits.length; i++) {
+                running += Math.max(0, parseFloat(traits[i].rarity) || 0)
+                if (roll <= running) return traits[i]
+              }
+
+              return traits[Math.floor(Math.random() * traits.length)]
+            }
+
+            function comboKey(items) {
+              return (items || [])
+                .map(function(item) {
+                  return displayLayerName(item.layer) + '::' + item.trait
+                })
+                .sort()
+                .join('|') || 'NO_TRAITS'
+            }
+
+            function makeCombo() {
+              for (let attempt = 0; attempt < 1000; attempt++) {
+                const items = []
+
+                const singleArtistId = artistCombinationMode === 'single'
+                  ? selectedArtistIds[Math.floor(Math.random() * selectedArtistIds.length)]
+                  : null
+
+                orderedLayerNames(groupedLayers).forEach(function(layerName) {
+                  const layerTraits = singleArtistId
+                    ? groupedLayers[layerName].filter(function(t) { return t.artistId === singleArtistId })
+                    : groupedLayers[layerName]
+                  if (!layerTraits.length) return
+                  const chosen = chooseTraitByRarity(layerTraits, layerName)
+                  if (chosen) items.push(chosen)
+                })
+
+                if (artistCombinationMode === 'require-all') {
+                  const presentArtists = items.map(function(i) { return i.artistId || 'unassigned' })
+                  if (!selectedArtistIds.every(function(id) { return presentArtists.includes(id) })) continue
+                }
+
+                if (typeof window.randomizerComboPassesRules === 'function') {
+                  if (!window.randomizerComboPassesRules(items)) continue
+                }
+
+                return { items: items, key: comboKey(items) }
+              }
+
+              return { items: [], key: 'NO_TRAITS', artistRequirementFailed: true }
+            }
+
+            function makeDifferentCombo(blockedKeys) {
+              for (let attempt = 0; attempt < 3000; attempt++) {
+                const combo = makeCombo()
+                if (!blockedKeys[combo.key]) {
+                  blockedKeys[combo.key] = true
+                  return combo
+                }
+              }
+
+              const fallback = makeCombo()
+              fallback.key = fallback.key + '::FORCED_UNIQUE_' + Math.random()
+              blockedKeys[fallback.key] = true
+              return fallback
+            }
+
+            const oneOfOneBlocked = {}
+            const oneOfOneRecords = []
+
+            for (let i = 0; i < requestedOneOfOnes; i++) {
+              const combo = makeDifferentCombo(oneOfOneBlocked)
+
+              oneOfOneRecords.push({
+                name: '',
+                kept: true,
+                intendedOneOfOne: true,
+                oneOfOne: true,
+                oneOfOneEdition: i + 1,
+                forcedOneOfOne: true,
+                items: combo.items
+              })
+            }
+
+            const nonOneRecords = []
+            const remainingCount = requestedCount - oneOfOneRecords.length
+
+            while (nonOneRecords.length < remainingCount) {
+              const combo = makeCombo()
+
+              nonOneRecords.push({
+                name: '',
+                kept: true,
+                intendedOneOfOne: false,
+                oneOfOne: false,
+                items: combo.items
+              })
+            }
+
+            const allRecords = oneOfOneRecords.concat(nonOneRecords)
+
+            for (let i = allRecords.length - 1; i > 0; i--) {
+              const j = Math.floor(Math.random() * (i + 1))
+              const temp = allRecords[i]
+              allRecords[i] = allRecords[j]
+              allRecords[j] = temp
+            }
+
+            allRecords.forEach(function(record, index) {
+              record.name = 'Generated NFT #' + (index + 1)
+              generatedRandomNFTsForExport.push(record)
+            })
+
+            const total = generatedRandomNFTsForExport.length
+            const counts = {}
+
+            generatedRandomNFTsForExport.forEach(function(nft, index) {
+              const baseKey = comboKey(nft.items)
+              nft.baseComboKey = baseKey
+              nft.comboKey = nft.oneOfOne ? baseKey + '::TRUE_1_OF_1_' + index : baseKey
+              counts[nft.comboKey] = (counts[nft.comboKey] || 0) + 1
+            })
+
+            generatedRandomNFTsForExport.forEach(function(nft) {
+              nft.comboCount = nft.oneOfOne ? 1 : counts[nft.comboKey]
+              nft.collectionRarity = (nft.comboCount / total) * 100
+              nft.rarityTier = nft.oneOfOne ? '1 of 1' :
+                nft.collectionRarity <= 0.5 ? 'Ultra Rare' :
+                nft.collectionRarity <= 5 ? 'Rare' :
+                nft.collectionRarity <= 15 ? 'Uncommon' :
+                'Common'
+            })
+
+            generatedRandomNFTsForExport
+              .map(function(nft, index) { return { nft: nft, index: index } })
+              .sort(function(a, b) {
+                if (a.nft.oneOfOne !== b.nft.oneOfOne) return a.nft.oneOfOne ? -1 : 1
+                if (a.nft.comboCount !== b.nft.comboCount) return a.nft.comboCount - b.nft.comboCount
+                return a.index - b.index
+              })
+              .forEach(function(entry, rankIndex) {
+                entry.nft.rank = rankIndex + 1
+              })
+
+            const createdOneOfOnes = generatedRandomNFTsForExport.filter(function(nft) {
+              return nft.oneOfOne === true
+            }).length
+
+            const tierStats = {
+              common: generatedRandomNFTsForExport.filter(function(nft) { return nft.rarityTier === 'Common' }).length,
+              uncommon: generatedRandomNFTsForExport.filter(function(nft) { return nft.rarityTier === 'Uncommon' }).length,
+              rare: generatedRandomNFTsForExport.filter(function(nft) { return nft.rarityTier === 'Rare' }).length,
+              ultraRare: generatedRandomNFTsForExport.filter(function(nft) { return nft.rarityTier === 'Ultra Rare' }).length,
+              oneOfOne: createdOneOfOnes
+            }
+
+            const uniqueCombos = new Set(generatedRandomNFTsForExport.map(function(nft) {
+              return nft.baseComboKey || nft.comboKey
+            })).size
+
+            const duplicateCount = total - uniqueCombos
+
+            const filterBar = document.createElement('div')
+            filterBar.style.display = 'flex'
+            filterBar.style.gap = '10px'
+            filterBar.style.marginTop = '20px'
+            filterBar.style.marginBottom = '10px'
+
+            const showAllButton = document.createElement('button')
+            showAllButton.innerHTML = 'Show All NFTs'
+            showAllButton.style.background = '#2563eb'
+            showAllButton.style.color = 'white'
+            showAllButton.style.border = 'none'
+            showAllButton.style.padding = '10px 14px'
+            showAllButton.style.borderRadius = '10px'
+            showAllButton.style.cursor = 'pointer'
+
+            const showOneButton = document.createElement('button')
+            showOneButton.innerHTML = '⭐ Show Only 1/1s'
+            showOneButton.style.background = '#f59e0b'
+            showOneButton.style.color = '#111827'
+            showOneButton.style.border = 'none'
+            showOneButton.style.padding = '10px 14px'
+            showOneButton.style.borderRadius = '10px'
+            showOneButton.style.fontWeight = 'bold'
+            showOneButton.style.cursor = 'pointer'
+
+            const compactButton = document.createElement('button')
+            compactButton.innerHTML = 'Compact View'
+            compactButton.style.background = '#374151'
+            compactButton.style.color = 'white'
+            compactButton.style.border = 'none'
+            compactButton.style.padding = '10px 14px'
+            compactButton.style.borderRadius = '10px'
+            compactButton.style.cursor = 'pointer'
+
+            const downloadNowButton = document.createElement('button')
+            downloadNowButton.innerHTML = 'Download ZIP'
+            downloadNowButton.style.background = '#2563eb'
+            downloadNowButton.style.color = 'white'
+            downloadNowButton.style.border = 'none'
+            downloadNowButton.style.padding = '10px 14px'
+            downloadNowButton.style.borderRadius = '10px'
+            downloadNowButton.style.cursor = 'pointer'
+            downloadNowButton.onclick = function() {
+              downloadGeneratedNFTZip()
+            }
+            filterBar.appendChild(downloadNowButton)
+
+            output.appendChild(filterBar)
+
+            const advancedFilterBar = document.createElement('div')
+            advancedFilterBar.style.display = 'flex'
+            advancedFilterBar.style.flexWrap = 'wrap'
+            advancedFilterBar.style.gap = '10px'
+            advancedFilterBar.style.marginTop = '12px'
+            advancedFilterBar.style.marginBottom = '18px'
+
+            const searchInput = document.createElement('input')
+            searchInput.placeholder = 'Search traits, layers, rarity, rank...'
+            searchInput.style.padding = '10px'
+            searchInput.style.borderRadius = '10px'
+            searchInput.style.border = 'none'
+            searchInput.style.minWidth = '260px'
+
+            const sortSelect = document.createElement('select')
+            sortSelect.style.padding = '10px'
+            sortSelect.style.borderRadius = '10px'
+            sortSelect.style.border = 'none'
+
+            ;[
+              'Highest Rank',
+              'Lowest Rank',
+              'Rarest',
+              'Most Common',
+              '1/1s Only',
+              'Duplicates Only',
+              'Kept',
+              'Discarded',
+              'Approved',
+              'Needs Review',
+              'Flagged Problem'
+            ].forEach(function(label) {
+              const opt = document.createElement('option')
+              opt.value = label
+              opt.textContent = label
+              sortSelect.appendChild(opt)
+            })
+
+            advancedFilterBar.appendChild(searchInput)
+            advancedFilterBar.appendChild(sortSelect)
+
+
+            output.appendChild(advancedFilterBar)
+
+            const batchBar = document.createElement('div')
+            batchBar.style.display = 'flex'
+            batchBar.style.flexWrap = 'wrap'
+            batchBar.style.gap = '10px'
+            batchBar.style.marginTop = '10px'
+            batchBar.style.marginBottom = '18px'
+
+            function makeBatchButton(label, bg) {
+              const btn = document.createElement('button')
+              btn.type = 'button'
+              btn.innerHTML = label
+              btn.style.background = bg
+              btn.style.color = 'white'
+              btn.style.border = 'none'
+              btn.style.padding = '10px 14px'
+              btn.style.borderRadius = '10px'
+              btn.style.cursor = 'pointer'
+              return btn
+            }
+
+            const keepOneBtn = makeBatchButton('Keep All 1/1s', '#f59e0b')
+            const discardDuplicateBtn = makeBatchButton('Discard Duplicate Copies', '#dc2626')
+            const restoreBtn = makeBatchButton('Restore All', '#2563eb')
+
+            batchBar.appendChild(keepOneBtn)
+            batchBar.appendChild(discardDuplicateBtn)
+            batchBar.appendChild(restoreBtn)
+
+            output.appendChild(batchBar)
+
+
+            const summary = document.createElement('div')
+            summary.style.background = '#0f172a'
+            summary.style.color = '#d1d5db'
+            summary.style.padding = '14px'
+            summary.style.borderRadius = '12px'
+            summary.style.marginTop = '20px'
+            summary.innerHTML =
+              '<strong>Collection Summary:</strong><br>' +
+              'Generated: ' + total +
+              '<br>Requested 1 of 1s: ' + requestedOneOfOnes +
+              '<br><span style="color:#f59e0b; font-weight:bold;">Created 1 of 1s: ' + createdOneOfOnes + '</span>'
+            output.appendChild(summary)
+
+            const statsPanel = document.createElement('div')
+            statsPanel.style.background = '#111827'
+            statsPanel.style.color = '#d1d5db'
+            statsPanel.style.padding = '14px'
+            statsPanel.style.borderRadius = '12px'
+            statsPanel.style.marginTop = '14px'
+            statsPanel.style.border = '2px solid #374151'
+            statsPanel.innerHTML =
+              '<strong>Collection Stats:</strong><br>' +
+              'Common: ' + tierStats.common +
+              '<br>Uncommon: ' + tierStats.uncommon +
+              '<br>Rare: ' + tierStats.rare +
+              '<br>Ultra Rare: ' + tierStats.ultraRare +
+              '<br>1/1: ' + tierStats.oneOfOne +
+              '<br>Unique Combos: ' + uniqueCombos +
+              '<br>Duplicate Combos: ' + duplicateCount
+            output.appendChild(statsPanel)
+
+            const nftGrid = document.createElement('div')
+            nftGrid.id = 'generatedNFTGrid'
+            nftGrid.style.display = 'grid'
+            nftGrid.style.gridTemplateColumns = 'repeat(3, minmax(0, 1fr))'
+            nftGrid.style.gap = '18px'
+            nftGrid.style.marginTop = '20px'
+            output.appendChild(nftGrid)
+
+            generatedRandomNFTsForExport.forEach(function(exportRecord) {
+              const selectedItems = exportRecord.items
+
+              const nftBox = document.createElement('div')
+              nftBox.style.background = '#111827'
+              nftBox.style.padding = '14px'
+              nftBox.style.borderRadius = '14px'
+              nftBox.style.marginTop = '0'
+              nftBox.style.border = exportRecord.oneOfOne ? '4px solid #f59e0b' : '2px solid #374151'
+              nftBox.style.boxShadow = exportRecord.oneOfOne ? '0 0 24px rgba(245,158,11,0.65)' : ''
+
+              if (exportRecord.oneOfOne) {
+                const oneBadge = document.createElement('div')
+                oneBadge.className = 'one-of-one-badge'
+                oneBadge.innerHTML = '⭐ TRUE 1/1 EDITION'
+                oneBadge.style.background = '#f59e0b'
+                oneBadge.style.color = '#111827'
+                oneBadge.style.display = 'inline-block'
+                oneBadge.style.padding = '8px 14px'
+                oneBadge.style.borderRadius = '999px'
+                oneBadge.style.fontWeight = 'bold'
+                oneBadge.style.marginBottom = '10px'
+                nftBox.appendChild(oneBadge)
+              }
+
+              const rankBadge = document.createElement('div')
+              rankBadge.innerHTML = '🏆 Rank #' + exportRecord.rank + ' of ' + total
+              rankBadge.style.background = '#312e81'
+              rankBadge.style.color = 'white'
+              rankBadge.style.display = 'inline-block'
+              rankBadge.style.padding = '7px 12px'
+              rankBadge.style.borderRadius = '999px'
+              rankBadge.style.fontWeight = 'bold'
+              rankBadge.style.marginBottom = '8px'
+              rankBadge.style.marginLeft = exportRecord.oneOfOne ? '8px' : '0'
+              nftBox.appendChild(rankBadge)
+
+              const title = document.createElement('h3')
+              title.innerHTML = exportRecord.name
+              nftBox.appendChild(title)
+
+              const raritySummary = document.createElement('div')
+              raritySummary.style.background = '#0f172a'
+              raritySummary.style.color = '#93c5fd'
+              raritySummary.style.padding = '10px 12px'
+              raritySummary.style.borderRadius = '10px'
+              raritySummary.style.marginBottom = '10px'
+              raritySummary.style.fontSize = '12px'
+              raritySummary.innerHTML =
+                '<strong>Natural Combo Count:</strong> ' + exportRecord.comboCount + ' of ' + total +
+                '<br><strong>Collection Rarity:</strong> ' + exportRecord.collectionRarity.toFixed(4).replace(/.?0+$/, '') + '%' +
+                '<br><strong>Rarity Tier:</strong> ' + exportRecord.rarityTier +
+                '<br><strong>Rarity Rank:</strong> #' + exportRecord.rank + ' of ' + total +
+                (exportRecord.oneOfOne ? '<br><strong>Edition:</strong> 1 of 1' : '')
+              nftBox.appendChild(raritySummary)
+
+              const contributorSummary = document.createElement('div')
+              contributorSummary.style.background = '#4a044e'
+              contributorSummary.style.color = '#fce7f3'
+              contributorSummary.style.padding = '10px 12px'
+              contributorSummary.style.borderRadius = '10px'
+              contributorSummary.style.marginBottom = '10px'
+              contributorSummary.style.fontSize = '12px'
+              contributorSummary.innerHTML = '<strong>Contributing Artists:</strong><br>' + contributorsForItems(selectedItems).map(function(c) {
+                return c.artist_name + ': ' + c.contributed_traits.map(function(t) { return t.layer + ' — ' + t.trait }).join(', ')
+              }).join('<br>')
+              nftBox.appendChild(contributorSummary)
+
+              const status = document.createElement('div')
+              status.innerHTML = 'Status: <span style="color:#22c55e;">Kept</span>'
+              status.style.marginBottom = '10px'
+              status.style.fontSize = '13px'
+              const reviewStatus = document.createElement('div')
+              reviewStatus.innerHTML = 'Review: <span style="color:#f59e0b;">Needs Review</span>'
+              reviewStatus.style.marginBottom = '10px'
+              reviewStatus.style.fontSize = '13px'
+
+              nftBox.appendChild(status)
+              nftBox.appendChild(reviewStatus)
+
+              const buttonRow = document.createElement('div')
+              buttonRow.style.display = 'flex'
+              buttonRow.style.gap = '10px'
+              buttonRow.style.marginBottom = '12px'
+
+              const keepButton = document.createElement('button')
+              keepButton.type = 'button'
+              keepButton.innerHTML = 'Keep / Un-discard'
+              keepButton.style.background = '#16a34a'
+              keepButton.style.color = 'white'
+              keepButton.style.border = 'none'
+              keepButton.style.padding = '8px 10px'
+              keepButton.style.borderRadius = '10px'
+
+              const discardButton = document.createElement('button')
+              discardButton.type = 'button'
+              discardButton.innerHTML = 'Discard NFT'
+              discardButton.style.background = '#dc2626'
+              discardButton.style.color = 'white'
+              discardButton.style.border = 'none'
+              discardButton.style.padding = '8px 10px'
+              discardButton.style.borderRadius = '10px'
+
+              keepButton.onclick = function() {
+                exportRecord.kept = true
+                nftBox.dataset.kept = 'true'
+                nftBox.style.opacity = '1'
+                status.innerHTML = 'Status: <span style="color:#22c55e;">Kept</span>'
+
+                if (typeof refreshNFTGridFilters === 'function') {
+                  refreshNFTGridFilters()
+                }
+              }
+
+              discardButton.onclick = function() {
+                exportRecord.kept = false
+                nftBox.dataset.kept = 'false'
+                nftBox.style.opacity = '0.45'
+                status.innerHTML = 'Status: <span style="color:#ef4444;">Discarded</span>'
+
+                if (typeof refreshNFTGridFilters === 'function') {
+                  refreshNFTGridFilters()
+                }
+              }
+
+
+              const approveButton = document.createElement('button')
+              approveButton.type = 'button'
+              approveButton.innerHTML = 'Approve'
+              approveButton.style.background = '#2563eb'
+              approveButton.style.color = 'white'
+              approveButton.style.border = 'none'
+              approveButton.style.padding = '8px 10px'
+              approveButton.style.borderRadius = '10px'
+
+              const reviewButton = document.createElement('button')
+              reviewButton.type = 'button'
+              reviewButton.innerHTML = 'Needs Review'
+              reviewButton.style.background = '#d97706'
+              reviewButton.style.color = 'white'
+              reviewButton.style.border = 'none'
+              reviewButton.style.padding = '8px 10px'
+              reviewButton.style.borderRadius = '10px'
+
+              const flagButton = document.createElement('button')
+              flagButton.type = 'button'
+              flagButton.innerHTML = 'Flag Problem'
+              flagButton.style.background = '#7f1d1d'
+              flagButton.style.color = 'white'
+              flagButton.style.border = 'none'
+              flagButton.style.padding = '8px 10px'
+              flagButton.style.borderRadius = '10px'
+
+              approveButton.onclick = function() {
+                nftBox.dataset.review = 'approved'
+                reviewStatus.innerHTML = 'Review: <span style="color:#60a5fa;">Approved</span>'
+
+                if (typeof refreshNFTGridFilters === 'function') {
+                  refreshNFTGridFilters()
+                }
+              }
+
+              reviewButton.onclick = function() {
+                nftBox.dataset.review = 'needs-review'
+                reviewStatus.innerHTML = 'Review: <span style="color:#f59e0b;">Needs Review</span>'
+
+                if (typeof refreshNFTGridFilters === 'function') {
+                  refreshNFTGridFilters()
+                }
+              }
+
+              flagButton.onclick = function() {
+                nftBox.dataset.review = 'flagged'
+                reviewStatus.innerHTML = 'Review: <span style="color:#ef4444;">Flagged Problem</span>'
+
+                if (typeof refreshNFTGridFilters === 'function') {
+                  refreshNFTGridFilters()
+                }
+              }
+
+              buttonRow.appendChild(approveButton)
+              buttonRow.appendChild(reviewButton)
+              buttonRow.appendChild(flagButton)
+
+              buttonRow.appendChild(keepButton)
+              buttonRow.appendChild(discardButton)
+
+              nftBox.appendChild(buttonRow)
+
+              const fullPreview = document.createElement('div')
+              fullPreview.style.position = 'relative'
+              fullPreview.style.width = '100%'
+              fullPreview.style.height = '220px'
+              fullPreview.style.background = '#000'
+              fullPreview.style.borderRadius = '16px'
+              fullPreview.style.overflow = 'hidden'
+              fullPreview.style.marginBottom = '12px'
+              fullPreview.style.border = '2px solid #374151'
+              nftBox.appendChild(fullPreview)
+
+              const detailButton = document.createElement('button')
+              detailButton.type = 'button'
+              detailButton.innerHTML = 'Show Traits'
+              detailButton.style.background = '#374151'
+              detailButton.style.color = 'white'
+              detailButton.style.border = 'none'
+              detailButton.style.padding = '8px 10px'
+              detailButton.style.borderRadius = '8px'
+              detailButton.style.cursor = 'pointer'
+              detailButton.style.marginTop = '8px'
+              detailButton.style.width = '100%'
+              nftBox.appendChild(detailButton)
+
+              const traitDetailsBox = document.createElement('div')
+              traitDetailsBox.style.display = 'none'
+              traitDetailsBox.style.marginTop = '10px'
+              nftBox.appendChild(traitDetailsBox)
+
+              detailButton.onclick = function() {
+                const hidden = traitDetailsBox.style.display === 'none'
+                traitDetailsBox.style.display = hidden ? '' : 'none'
+                detailButton.innerHTML = hidden ? 'Hide Traits' : 'Show Traits'
+              }
+
+              selectedItems.forEach(function(randomTrait) {
+                const fullLayerImage = document.createElement('img')
+                fullLayerImage.src = randomTrait.imageURL
+                fullLayerImage.style.position = 'absolute'
+                fullLayerImage.style.top = '0'
+                fullLayerImage.style.left = '0'
+                fullLayerImage.style.width = '100%'
+                fullLayerImage.style.height = '100%'
+                fullLayerImage.style.objectFit = 'contain'
+                fullPreview.appendChild(fullLayerImage)
+
+                const traitRow = document.createElement('div')
+                traitRow.style.display = 'flex'
+                traitRow.style.alignItems = 'center'
+                traitRow.style.gap = '14px'
+                traitRow.style.marginTop = '12px'
+                traitRow.style.background = '#1f2937'
+                traitRow.style.padding = '8px'
+                traitRow.style.borderRadius = '10px'
+
+                const preview = document.createElement('img')
+                preview.src = randomTrait.imageURL
+                preview.style.width = '36px'
+                preview.style.height = '36px'
+                preview.style.objectFit = 'cover'
+                preview.style.borderRadius = '10px'
+
+                const info = document.createElement('div')
+                info.innerHTML =
+                  '<strong>' + displayLayerName(randomTrait.layer) + '</strong><br>' +
+                  randomTrait.trait + ' (' + randomTrait.rarity + '%)<br>' +
+                  '<span style="color:#f9a8d4">Artist: ' + artistById(randomTrait.artistId || 'unassigned').name + '</span>'
+
+                traitRow.appendChild(preview)
+                traitRow.appendChild(info)
+                traitDetailsBox.appendChild(traitRow)
+              })
+
+              nftBox.dataset.oneofone = exportRecord.oneOfOne ? 'true' : 'false'
+
+
+              nftBox.dataset.exportIndex = generatedRandomNFTsForExport.indexOf(exportRecord)
+              nftBox.dataset.rank = exportRecord.rank || 999999
+              nftBox.dataset.rarity = exportRecord.collectionRarity || 0
+              nftBox.dataset.oneofone = exportRecord.oneOfOne ? 'true' : 'false'
+              nftBox.dataset.kept = exportRecord.kept ? 'true' : 'false'
+              nftBox.dataset.review = 'needs-review'
+              nftBox.dataset.combo = exportRecord.comboCount || 0
+
+              nftBox.dataset.search = (
+                exportRecord.name + ' ' +
+                exportRecord.rarityTier + ' ' +
+                exportRecord.rank + ' ' +
+                exportRecord.comboCount + ' ' +
+                selectedItems.map(function(i) {
+                  return i.layer + ' ' + i.trait + ' ' + artistById(i.artistId || 'unassigned').name
+                }).join(' ')
+              ).toLowerCase()
+
+              nftGrid.appendChild(nftBox)
+
+            })
+
+            if (statusBox) {
+              statusBox.innerHTML = 'Generation complete: ' + total + ' NFTs created.'
+            }
+
+
+            function refreshNFTGridFilters() {
+              const cards = Array.from(nftGrid.children)
+
+              const query = (searchInput.value || '').toLowerCase().trim()
+              const mode = sortSelect.value
+
+              cards.forEach(function(card) {
+                let visible = true
+
+                if (query && !card.dataset.search.includes(query)) {
+                  visible = false
+                }
+
+                if (mode === '1/1s Only' && card.dataset.oneofone !== 'true') {
+                  visible = false
+                }
+
+                if (mode === 'Duplicates Only' && parseInt(card.dataset.combo || '0', 10) <= 1) {
+                  visible = false
+                }
+
+                if (mode === 'Kept' && card.dataset.kept !== 'true') {
+                  visible = false
+                }
+
+                if (mode === 'Discarded' && card.dataset.kept !== 'false') {
+                  visible = false
+                }
+
+                if (mode === 'Approved' && card.dataset.review !== 'approved') {
+                  visible = false
+                }
+
+                if (mode === 'Needs Review' && card.dataset.review !== 'needs-review') {
+                  visible = false
+                }
+
+                if (mode === 'Flagged Problem' && card.dataset.review !== 'flagged') {
+                  visible = false
+                }
+
+                card.style.display = visible ? '' : 'none'
+              })
+
+              let visibleCards = cards.filter(function(card) {
+                return card.style.display !== 'none'
+              })
+
+              visibleCards.sort(function(a, b) {
+
+                if (mode === 'Highest Rank') {
+                  return parseInt(a.dataset.rank, 10) - parseInt(b.dataset.rank, 10)
+                }
+
+                if (mode === 'Lowest Rank') {
+                  return parseInt(b.dataset.rank, 10) - parseInt(a.dataset.rank, 10)
+                }
+
+                if (mode === 'Rarest') {
+                  return parseFloat(a.dataset.rarity) - parseFloat(b.dataset.rarity)
+                }
+
+                if (mode === 'Most Common') {
+                  return parseFloat(b.dataset.rarity) - parseFloat(a.dataset.rarity)
+                }
+
+                return parseInt(a.dataset.rank, 10) - parseInt(b.dataset.rank, 10)
+              })
+
+              visibleCards.forEach(function(card) {
+                nftGrid.appendChild(card)
+              })
+            }
+            keepOneBtn.onclick = function() {
+              Array.from(nftGrid.children).forEach(function(card, i) {
+
+                if (card.dataset.oneofone === 'true') {
+                  card.dataset.kept = 'true'
+                  card.style.opacity = '1'
+
+                  generatedRandomNFTsForExport[i].kept = true
+
+                  const status = card.querySelector('div')
+                  if (status && status.innerHTML.includes('Status:')) {
+                    status.innerHTML = 'Status: <span style="color:#22c55e;">Kept</span>'
+                  }
+                }
+              })
+
+              refreshNFTGridFilters()
+            }
+
+            discardDuplicateBtn.onclick = function() {
+              let discarded = 0
+
+              Array.from(nftGrid.children).forEach(function(card) {
+                const isVisible = card.style.display !== 'none'
+                const isDuplicateCopy = card.dataset.duplicatecopy === 'true'
+
+                if (!isVisible || !isDuplicateCopy) return
+
+                card.dataset.kept = 'false'
+                card.style.opacity = '0.45'
+
+                const exportIndex = parseInt(card.dataset.exportIndex || '-1', 10)
+
+                if (generatedRandomNFTsForExport[exportIndex]) {
+                  generatedRandomNFTsForExport[exportIndex].kept = false
+                }
+
+                const statusBlocks = card.querySelectorAll('div')
+                statusBlocks.forEach(function(block) {
+                  if (block.innerHTML && block.innerHTML.includes('Status:')) {
+                    block.innerHTML = 'Status: <span style="color:#ef4444;">Discarded</span>'
+                  }
+                })
+
+                discarded++
+              })
+
+              const status = document.getElementById('generationStatus')
+              if (status) {
+                status.style.display = 'block'
+                status.innerHTML = 'Discarded duplicate copies: ' + discarded
+              }
+
+              refreshNFTGridFilters()
+            }
+
+            restoreBtn.onclick = function() {
+              Array.from(nftGrid.children).forEach(function(card, i) {
+
+                card.dataset.kept = 'true'
+                card.style.opacity = '1'
+
+                generatedRandomNFTsForExport[i].kept = true
+
+                const status = card.querySelector('div')
+                if (status && status.innerHTML.includes('Status:')) {
+                  status.innerHTML = 'Status: <span style="color:#22c55e;">Kept</span>'
+                }
+              })
+
+              refreshNFTGridFilters()
+            }
+
+            searchInput.addEventListener('input', refreshNFTGridFilters)
+            sortSelect.addEventListener('change', refreshNFTGridFilters)
+
+            console.log('FINAL EXACT 1/1 GENERATOR:', {
+              requestedOneOfOnes: requestedOneOfOnes,
+              createdOneOfOnes: createdOneOfOnes,
+              generatedRandomNFTsForExport: generatedRandomNFTsForExport
+            })
+          }
+
+
+
+        function removeGeneratedNFTs() {
+          const output = document.getElementById('generatedRandomNFTs')
+          const status = document.getElementById('generationStatus')
+
+          if (!generatedRandomNFTsForExport || !generatedRandomNFTsForExport.length) {
+            alert('No generated NFTs to remove.')
+            return
+          }
+
+          if (!confirm('Remove all generated NFTs from the page?')) return
+
+          generatedRandomNFTsForExport = []
+
+          if (output) {
+            output.innerHTML = ''
+          }
+
+          if (status) {
+            status.style.display = 'none'
+            status.innerHTML = 'Ready to generate.'
+          }
+        }
+
+        async function generateCollection() {
+          if (currentMode === 'advanced') {
+            downloadGeneratedNFTZip()
+            return
+          }
+
+          const collectionName = document.getElementById('collectionName').value || 'NFT Collection'
+          const nftBaseName = document.getElementById('nftBaseName').value || 'NFT'
+          const safeDownloadName = collectionName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'rare-ink-nft-collection'
+          const zip = new JSZip()
+          const images = zip.folder('images')
+          const metadata = zip.folder('metadata')
+
+          function extension(file) {
+            const match = String(file.name || '').match(/\.[a-z0-9]+$/i)
+            return match ? match[0].toLowerCase() : '.png'
+          }
+
+          if (currentMode === 'simple') {
+            const file = document.getElementById('simpleArtworkInput').files[0]
+            if (!file) { alert('Please select artwork first.'); return }
+            const total = Math.max(1, Math.min(10000, parseInt(document.getElementById('supplyAmount').value || '1', 10)))
+            const ext = extension(file)
+            for (let i = 1; i <= total; i++) {
+              const imageName = i + ext
+              images.file(imageName, file)
+              metadata.file(i + '.json', JSON.stringify(applyExportSettings({
+                name: nftBaseName + ' #' + i,
+                description: collectionName,
+                image: 'images/' + imageName,
+                attributes: (sharedTraits || []).concat([{ trait_type:'Edition', value:i + ' of ' + total }])
+              }), null, 2))
+            }
+          }
+
+          if (currentMode === 'multi') {
+            const files = Array.from(document.getElementById('multiArtworkInput').files || [])
+            if (!files.length) { alert('Please select images first.'); return }
+            files.forEach(function(file, index) {
+              const number = index + 1
+              const imageName = number + extension(file)
+              images.file(imageName, file)
+              metadata.file(number + '.json', JSON.stringify(applyExportSettings({
+                name: document.getElementById('multiName' + number)?.value || nftBaseName + ' #' + number,
+                description: document.getElementById('multiDescription' + number)?.value || collectionName,
+                image: 'images/' + imageName,
+                attributes: (sharedTraits || []).concat(perImageTraits[number] || [])
+              }), null, 2))
+            })
+          }
+
+          zip.file('manifest.json', JSON.stringify({
+            created_by:'Rare Ink Studios NFT Creator', collection_name:collectionName,
+            mode:currentMode, nft_base_name:nftBaseName, exported_at:new Date().toISOString()
+          }, null, 2))
+          zip.file('README.txt', 'Rare Ink Studios NFT Creator Export\n\nCollection: ' + collectionName + '\nMode: ' + currentMode + '\n')
+
+          const blob = await zip.generateAsync({ type:'blob' })
+          const url = URL.createObjectURL(blob)
+          const a = document.createElement('a')
+          a.href = url; a.download = safeDownloadName + '-nft-export.zip'
+          document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url)
+        }
+      
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* === FINAL SAVED TRAIT SET SYSTEM === */
+(function () {
+  const DB_NAME = 'RareInkTraitSetDatabase'
+  const DB_VERSION = 1
+  const STORE_NAME = 'traitSets'
+
+  function openTraitDB() {
+    return new Promise(function(resolve, reject) {
+      const request = indexedDB.open(DB_NAME, DB_VERSION)
+
+      request.onupgradeneeded = function(event) {
+        const db = event.target.result
+        if (!db.objectStoreNames.contains(STORE_NAME)) {
+          const store = db.createObjectStore(STORE_NAME, { keyPath: 'id', autoIncrement: true })
+          store.createIndex('name', 'name', { unique: false })
+          store.createIndex('createdAt', 'createdAt', { unique: false })
+        }
+      }
+
+      request.onsuccess = function(event) {
+        resolve(event.target.result)
+      }
+
+      request.onerror = function() {
+        reject(request.error)
+      }
+    })
+  }
+
+  async function getAllTraitSets() {
+    const db = await openTraitDB()
+
+    return new Promise(function(resolve, reject) {
+      const tx = db.transaction(STORE_NAME, 'readonly')
+      const store = tx.objectStore(STORE_NAME)
+      const request = store.getAll()
+
+      request.onsuccess = function() {
+        const sets = request.result || []
+        sets.sort(function(a, b) {
+          return (a.createdAt || 0) - (b.createdAt || 0)
+        })
+        resolve(sets)
+      }
+
+      request.onerror = function() {
+        reject(request.error)
+      }
+    })
+  }
+
+  async function saveTraitSetRecord(record) {
+    const db = await openTraitDB()
+
+    return new Promise(function(resolve, reject) {
+      const tx = db.transaction(STORE_NAME, 'readwrite')
+      const store = tx.objectStore(STORE_NAME)
+      const request = store.put(record)
+
+      request.onsuccess = function() {
+        resolve(request.result)
+      }
+
+      request.onerror = function() {
+        reject(request.error)
+      }
+    })
+  }
+
+  async function deleteTraitSetRecord(id) {
+    const db = await openTraitDB()
+
+    return new Promise(function(resolve, reject) {
+      const tx = db.transaction(STORE_NAME, 'readwrite')
+      const store = tx.objectStore(STORE_NAME)
+      const request = store.delete(id)
+
+      request.onsuccess = function() {
+        resolve()
+      }
+
+      request.onerror = function() {
+        reject(request.error)
+      }
+    })
+  }
+
+  function fileToDataURLFromImageURL(imageURL) {
+    return fetch(imageURL)
+      .then(function(r) { return r.blob() })
+      .then(function(blob) {
+        return new Promise(function(resolve) {
+          const reader = new FileReader()
+          reader.onload = function() { resolve(reader.result) }
+          reader.readAsDataURL(blob)
+        })
+      })
+  }
+
+  window.refreshSavedTraitDropdownFinal = async function () {
+    const select = document.getElementById('savedTraitSetSelect')
+    if (!select) return
+
+    const current = select.value
+    const sets = await getAllTraitSets()
+
+    select.innerHTML = ''
+
+    const first = document.createElement('option')
+    first.value = ''
+    first.textContent = sets.length ? 'Choose saved trait set' : 'No saved trait sets'
+    select.appendChild(first)
+
+    sets.forEach(function(set, index) {
+      const opt = document.createElement('option')
+      opt.value = String(set.id)
+      opt.textContent = (index + 1) + '. ' + set.name
+      select.appendChild(opt)
+    })
+
+    if (current && Array.from(select.options).some(function(o) { return o.value === current })) {
+      select.value = current
+    }
+  }
+
+  window.drawSavedTraitPickerFinal = async function () {
+    const select = document.getElementById('savedTraitSetSelect')
+    const picker = document.getElementById('savedTraitPickerBox')
+    if (!select || !picker) return
+
+    const id = parseInt(select.value, 10)
+    const sets = await getAllTraitSets()
+    const set = sets.find(function(item) { return item.id === id })
+
+    if (!set) {
+      picker.innerHTML = '<div style="color:#9ca3af;">Choose a saved trait set.</div>'
+      return
+    }
+
+    let html =
+      '<div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:12px;">' +
+      '<button type="button" onclick="selectAllSavedTraitsFinal()" style="background:#16a34a; color:white; border:none; padding:8px 12px; border-radius:8px;">Select All</button>' +
+      '<button type="button" onclick="unselectAllSavedTraitsFinal()" style="background:#374151; color:white; border:none; padding:8px 12px; border-radius:8px;">Unselect All</button>' +
+      '</div>'
+
+    const grouped = {}
+    ;(set.traits || []).forEach(function(item, index) {
+      item.layer = displayLayerName(item.layer)
+      if (!grouped[item.layer]) grouped[item.layer] = []
+      grouped[item.layer].push({ item: item, index: index })
+    })
+
+    Object.keys(grouped).forEach(function(layer) {
+      html += '<div style="color:#93c5fd; font-weight:bold; margin-top:12px;">' + layer + '</div>'
+      html += '<div style="margin-bottom:14px; background:#0f172a; padding:10px; border-radius:10px;">'
+
+      grouped[layer].forEach(function(entry) {
+        html += '<label style="display:block; color:#d1d5db; margin-top:8px;">'
+        html += '<input type="checkbox" class="savedTraitPick" value="' + entry.index + '"> '
+        html += entry.item.trait + ' (' + entry.item.rarity + '%)'
+        html += '</label>'
+      })
+
+      html += '</div>'
+    })
+
+    picker.innerHTML = html
+  }
+
+  window.toggleSavedTraitPickerBox = function () {
+    const picker = document.getElementById('savedTraitPickerBox')
+    if (!picker) return
+    picker.style.display = picker.style.display === 'none' ? '' : 'none'
+  }
+
+  window.selectAllSavedTraitsFinal = function () {
+    document.querySelectorAll('.savedTraitPick').forEach(function(cb) { cb.checked = true })
+  }
+
+  window.unselectAllSavedTraitsFinal = function () {
+    document.querySelectorAll('.savedTraitPick').forEach(function(cb) { cb.checked = false })
+  }
+
+  window.saveCurrentTraitSetClean = async function () {
+    if (!randomizerTraits.length) {
+      alert('Please add traits before saving.')
+      return
+    }
+
+    let name = prompt('Name this saved trait set:')
+    if (!name || !name.trim()) return
+    name = name.trim()
+
+    const sets = await getAllTraitSets()
+    const existing = sets.find(function(set) {
+      return set.name.toLowerCase() === name.toLowerCase()
+    })
+
+    if (existing && !confirm('Replace saved set "' + name + '"?')) {
+      return
+    }
+
+    const packed = []
+
+    for (let i = 0; i < randomizerTraits.length; i++) {
+      const item = randomizerTraits[i]
+      let imageURL = item.imageURL
+
+      try {
+        imageURL = await fileToDataURLFromImageURL(item.imageURL)
+      } catch (e) {}
+
+      packed.push({
+        layer: displayLayerName(item.layer),
+        trait: item.trait,
+        rarity: item.rarity,
+        imageName: item.imageName || item.fileName || '',
+        fileName: item.fileName || item.imageName || '',
+        imageURL: imageURL
+      })
+    }
+
+    const record = {
+      name: name,
+      traits: packed,
+      createdAt: existing ? existing.createdAt : Date.now(),
+      updatedAt: Date.now()
+    }
+
+    if (existing) record.id = existing.id
+
+    const savedId = await saveTraitSetRecord(record)
+
+    await window.refreshSavedTraitDropdownFinal()
+
+    const select = document.getElementById('savedTraitSetSelect')
+    if (select) select.value = String(savedId)
+
+    await window.drawSavedTraitPickerFinal()
+
+    alert('Saved trait set: ' + name)
+  }
+
+  window.addCheckedTraitsOnly = async function () {
+    const select = document.getElementById('savedTraitSetSelect')
+    const sets = await getAllTraitSets()
+    const id = parseInt(select.value, 10)
+    const set = sets.find(function(item) { return item.id === id })
+
+    if (!set) {
+      alert('Choose a saved trait set first.')
+      return
+    }
+
+    const checked = Array.from(document.querySelectorAll('.savedTraitPick:checked'))
+
+    if (!checked.length) {
+      alert('Check at least one trait or use Select All.')
+      return
+    }
+
+    checked.forEach(function(cb) {
+      const item = set.traits[parseInt(cb.value, 10)]
+      if (!item) return
+
+      randomizerTraits.push({
+        artistId: item.artistId || 'unassigned',
+        artistName: artistById(item.artistId || 'unassigned').name,
+        layer: displayLayerName(item.layer),
+        trait: item.trait,
+        rarity: item.rarity,
+        imageName: item.imageName || item.fileName || '',
+        fileName: item.fileName || item.imageName || '',
+        imageURL: item.imageURL
+      })
+    })
+
+    renderRandomTraits()
+  }
+
+  window.replaceWithCheckedTraitsOnly = async function () {
+    randomizerTraits = []
+    await window.addCheckedTraitsOnly()
+  }
+
+  window.deleteSavedTraitSetClean = async function () {
+    const select = document.getElementById('savedTraitSetSelect')
+    const sets = await getAllTraitSets()
+    const id = parseInt(select.value, 10)
+    const set = sets.find(function(item) { return item.id === id })
+
+    if (!set) {
+      alert('Choose a saved trait set first.')
+      return
+    }
+
+    if (!confirm('Delete "' + set.name + '"?')) return
+
+    await deleteTraitSetRecord(id)
+    await window.refreshSavedTraitDropdownFinal()
+    await window.drawSavedTraitPickerFinal()
+  }
+
+  setInterval(function () {
+    const select = document.getElementById('savedTraitSetSelect')
+    if (select && !select.dataset.finalSaveReady) {
+      select.dataset.finalSaveReady = 'true'
+      select.addEventListener('change', function() {
+        window.drawSavedTraitPickerFinal()
+      })
+      window.refreshSavedTraitDropdownFinal()
+      window.drawSavedTraitPickerFinal()
+    }
+  }, 700)
+})()
+/* === END FINAL SAVED TRAIT SET SYSTEM === */
+
+
+</script>
+
+    </body>
+  </html>
+  
