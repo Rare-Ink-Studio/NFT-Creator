@@ -2,7 +2,7 @@
 
   <html>
     <head>
-      <title>Rare Ink Studios NFT Creator — Multi-Artist</title>
+      <title>Rare Ink Studio NFT Creator — Multi-Artist</title>
       <meta name="viewport" content="width=device-width, initial-scale=1" />
       <meta name="description" content="Create layered, multi-artist NFT collections with rarity controls, metadata, project saving, and ZIP export." />
       <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
@@ -21,21 +21,16 @@
 
       <div style="max-width:1000px; margin:auto;">
 
-        <h1 style="font-size:48px; margin-bottom:10px;">Rare Ink Studios NFT Creator</h1>
+        <h1 style="font-size:48px; margin-bottom:10px;">Rare Ink Studio NFT Creator</h1>
 
         <p style="font-size:20px; color:#d1d5db; margin-bottom:40px;">
           Simple NFT collection generation for creators.
         </p>
-        <div style="background:#052e16; border:1px solid #22c55e; color:#dcfce7; padding:12px 16px; border-radius:12px; margin-bottom:22px;">
-          Privacy: artwork and project data stay in your browser. Nothing is uploaded to Rare Ink Studios or GitHub.
-        </div>
-
-        <div style="display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:10px; margin-bottom:22px;">
+        <div style="display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px; margin-bottom:22px;">
           <button class="creatorTypeButton" id="creatorTypeImage" onclick="selectCreatorType('image')" style="background:#2563eb;color:white;border:none;padding:16px 8px;border-radius:12px;cursor:pointer;">🖼️ Image</button>
           <button class="creatorTypeButton" id="creatorTypeAudio" onclick="selectCreatorType('audio')" style="background:#374151;color:white;border:none;padding:16px 8px;border-radius:12px;cursor:pointer;">🎵 Audio</button>
           <button class="creatorTypeButton" id="creatorTypeVideo" onclick="selectCreatorType('video')" style="background:#374151;color:white;border:none;padding:16px 8px;border-radius:12px;cursor:pointer;">🎬 Video</button>
           <button class="creatorTypeButton" id="creatorTypeAudiovisual" onclick="selectCreatorType('audiovisual')" style="background:#374151;color:white;border:none;padding:16px 8px;border-radius:12px;cursor:pointer;">🎞️ Audiovisual</button>
-          <button class="creatorTypeButton" id="creatorTypeExport" onclick="selectCreatorType('export')" style="background:#374151;color:white;border:none;padding:16px 8px;border-radius:12px;cursor:pointer;">📦 Export Center</button>
         </div>
 
         <div id="imageCreatorPanel" class="creatorPanel" style="background:#1f2937; padding:35px; border-radius:22px;">
@@ -436,20 +431,6 @@
           <button onclick="exportMediaCreator('audiovisual')" style="margin-top:14px;background:#16a34a;color:white;border:none;padding:14px 20px;border-radius:10px;">Generate Audiovisual NFT ZIP</button>
         </div>
 
-        <div id="exportCreatorPanel" class="creatorPanel" style="display:none;background:#1f2937;padding:35px;border-radius:22px;">
-          <h2>📦 Marketplace Export Center</h2>
-          <p style="color:#d1d5db;">These settings are included in creator exports. Minting remains in One Home.</p>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-            <select id="exportPreset" style="padding:14px;border-radius:10px;border:none;"><option value="generic">Generic / IPFS</option><option value="xrpl">XRPL</option><option value="opensea">OpenSea / Ethereum / Polygon / Base</option><option value="solana">Solana</option><option value="cardano">Cardano</option></select>
-            <input id="exportCreatorName" placeholder="Creator / Brand" value="Rare Ink Studios" style="padding:14px;border-radius:10px;border:none;">
-            <input id="exportCollectionName" placeholder="Collection Name" style="padding:14px;border-radius:10px;border:none;">
-            <input id="exportExternalUrl" placeholder="External URL" style="padding:14px;border-radius:10px;border:none;">
-            <input id="exportRoyalty" type="number" min="0" max="100" step="0.1" placeholder="Royalty %" style="padding:14px;border-radius:10px;border:none;">
-            <input id="exportLicense" placeholder="License / Usage Rights" style="padding:14px;border-radius:10px;border:none;">
-          </div>
-          <button onclick="saveExportSettings()" style="margin-top:16px;background:#2563eb;color:white;border:none;padding:14px 20px;border-radius:10px;">Save Export Settings</button>
-          <div id="exportSettingsStatus" style="margin-top:14px;color:#86efac;"></div>
-        </div>
 
       </div>
 
@@ -458,7 +439,6 @@
         let sharedTraits = []
         let perImageTraits = {}
         let mediaTraits = { audio:[], video:[], audiovisual:[] }
-        let exportSettings = JSON.parse(localStorage.getItem('rareInkExportSettings') || '{}')
 
         function selectCreatorType(type) {
           document.querySelectorAll('.creatorPanel').forEach(function(panel) { panel.style.display = 'none' })
@@ -482,32 +462,9 @@
 
         function removeMediaTrait(type,index) { mediaTraits[type].splice(index,1); renderMediaTraits(type) }
 
-        function saveExportSettings() {
-          exportSettings = {
-            preset:document.getElementById('exportPreset').value,
-            creator:document.getElementById('exportCreatorName').value.trim(),
-            collection:document.getElementById('exportCollectionName').value.trim(),
-            external_url:document.getElementById('exportExternalUrl').value.trim(),
-            royalty_percentage:document.getElementById('exportRoyalty').value,
-            license:document.getElementById('exportLicense').value.trim()
-          }
-          localStorage.setItem('rareInkExportSettings', JSON.stringify(exportSettings))
-          document.getElementById('exportSettingsStatus').textContent = 'Export settings saved in this browser.'
-        }
-
         function applyExportSettings(metadata) {
-          const settings = exportSettings || {}
           const result = Object.assign({}, metadata)
-          result.creator = settings.creator || 'Rare Ink Studios'
-          result.collection = settings.collection || result.collection || ''
-          result.external_url = settings.external_url || ''
-          result.license = settings.license || ''
-          result.royalty_percentage = settings.royalty_percentage === '' || settings.royalty_percentage === undefined ? null : Number(settings.royalty_percentage)
-          result.export_format = settings.preset || 'generic'
-          if (settings.preset === 'xrpl') result.schema = 'XRPL NFT metadata'
-          if (settings.preset === 'opensea') result.schema = 'OpenSea compatible metadata'
-          if (settings.preset === 'solana') result.properties = Object.assign({}, result.properties, { category:'media', creators:[{ address:'', share:100 }] })
-          if (settings.preset === 'cardano') result.schema = 'Cardano NFT metadata'
+          result.creator = result.creator || 'Rare Ink Studio'
           return result
         }
 
@@ -537,16 +494,12 @@
             if (type === 'audiovisual') { data.image_or_video='media/'+primaryName; data.animation_url='media/'+primaryName; data.audio_url='media/'+audioName; data.media_type=primary.type; data.audio_type=audio.type }
             metadataFolder.file(i + '.json', JSON.stringify(applyExportSettings(data),null,2))
           }
-          zip.file('manifest.json', JSON.stringify({ created_by:'Rare Ink Studios NFT Creator', creator_type:type, collection_name:collection, supply:supply, exported_at:new Date().toISOString(), minting:'Handled separately through One Home' },null,2))
+          zip.file('manifest.json', JSON.stringify({ created_by:'Rare Ink Studio NFT Creator', creator_type:type, collection_name:collection, supply:supply, exported_at:new Date().toISOString() },null,2))
           const blob=await zip.generateAsync({type:'blob'}), url=URL.createObjectURL(blob), a=document.createElement('a')
           a.href=url; a.download=collection.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')+'-'+type+'-nfts.zip'; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url)
         }
 
         ;['audio','video','audiovisual'].forEach(renderMediaTraits)
-        setTimeout(function() {
-          const map={ exportPreset:'preset', exportCreatorName:'creator', exportCollectionName:'collection', exportExternalUrl:'external_url', exportRoyalty:'royalty_percentage', exportLicense:'license' }
-          Object.keys(map).forEach(function(id) { if (exportSettings[map[id]] !== undefined) document.getElementById(id).value=exportSettings[map[id]] })
-        },0)
 
         function selectMode(mode) {
           currentMode = mode
@@ -639,7 +592,7 @@
 
                   <input id="multiName${number}" placeholder="NFT Name" value="${document.getElementById('nftBaseName').value || 'NFT'} #${number}" style="width:auto; min-width:220px; padding:12px; border-radius:10px; border:none; font-size:16px; margin-bottom:10px;" />
 
-                  <textarea id="multiDescription${number}" placeholder="NFT Description" style="width:auto; min-width:220px; padding:12px; border-radius:10px; border:none; font-size:16px; min-height:70px; margin-bottom:12px;">Generated with Rare Ink Studios NFT Creator</textarea>
+                  <textarea id="multiDescription${number}" placeholder="NFT Description" style="width:auto; min-width:220px; padding:12px; border-radius:10px; border:none; font-size:16px; min-height:70px; margin-bottom:12px;">Generated with Rare Ink Studio NFT Creator</textarea>
 
                   <div style="font-size:18px; margin-top:12px; margin-bottom:10px;">Traits for NFT #${number}</div>
 
@@ -1936,7 +1889,7 @@
 
               const metadata = {
                 name: nft.name,
-                description: 'Generated with Rare Ink Studios / Night Shots NFT Creator',
+                description: 'Generated with Rare Ink Studio / Night Shots NFT Creator',
                 image: 'images/' + fileBase + '.png',
                 contributors: contributorsForItems(nft.items),
                 attributes: nft.items.map(function(item) {
@@ -2996,10 +2949,10 @@
           }
 
           zip.file('manifest.json', JSON.stringify({
-            created_by:'Rare Ink Studios NFT Creator', collection_name:collectionName,
+            created_by:'Rare Ink Studio NFT Creator', collection_name:collectionName,
             mode:currentMode, nft_base_name:nftBaseName, exported_at:new Date().toISOString()
           }, null, 2))
-          zip.file('README.txt', 'Rare Ink Studios NFT Creator Export\n\nCollection: ' + collectionName + '\nMode: ' + currentMode + '\n')
+          zip.file('README.txt', 'Rare Ink Studio NFT Creator Export\n\nCollection: ' + collectionName + '\nMode: ' + currentMode + '\n')
 
           const blob = await zip.generateAsync({ type:'blob' })
           const url = URL.createObjectURL(blob)

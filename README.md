@@ -1,4 +1,4 @@
-# Rare Ink Studios NFT Creator
+# Rare Ink Studio NFT Creator
 
 Standalone creator for image, audio, video, and paired audiovisual NFT collections. Minting is handled separately through One Home.
 
@@ -18,6 +18,5 @@ Open `index.html` or publish this folder with GitHub Pages, Netlify, or another 
 - Audio NFT editions with optional cover art
 - Video NFT editions with optional poster art
 - Paired audiovisual NFT editions
-- Marketplace-ready export presets for XRPL, OpenSea/EVM, Solana, Cardano, and generic IPFS workflows
 
 Artwork remains in the visitor's browser and is not uploaded to the host.
